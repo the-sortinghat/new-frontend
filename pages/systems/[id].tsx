@@ -1,9 +1,11 @@
 import type { NextPage } from "next";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import Checkbox from "../../components/Checkbox";
-import Graph from "../../components/Graph";
 import Header from "../../components/Header";
 import styles from "../../styles/SystemPage.module.css";
+
+const Graph = dynamic(() => import("../../components/Graph"), { ssr: false });
 
 const SystemPage: NextPage = () => {
   const router = useRouter();
