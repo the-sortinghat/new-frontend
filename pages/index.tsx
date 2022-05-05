@@ -2,7 +2,7 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styles from "../styles/Home.module.css";
 
 type System = {
@@ -28,7 +28,7 @@ const SearchInput: React.FC<{
   systems: System[];
   onSearch: (systems: System[]) => void;
 }> = ({ systems, onSearch }) => {
-  function searchSystem(query: string) {
+  const searchSystem = (query: string) => {
     onSearch(
       systems.filter(
         ({ name, description }) =>
@@ -36,7 +36,7 @@ const SearchInput: React.FC<{
           description.toLocaleLowerCase().includes(query.toLocaleLowerCase())
       )
     );
-  }
+  };
 
   return (
     <input
@@ -87,15 +87,17 @@ const Footer: React.FC = () => {
 };
 
 const Home: NextPage = () => {
-  const allSystems = [
-    {
-      id: 1,
-      name: "InterSCity",
-      description:
-        "InterSCity platform, an open-source, microservices-based middleware to support the development of smart city applications and to enable novel, reproducible research, and experiments in this field.",
-    },
-  ];
+  const [allSystems, setAllSystems] = useState<System[]>([]);
   const [filteredSystems, setFilteredSystems] = useState<System[]>(allSystems);
+
+  useEffect(() => {
+    fetch("api/systems")
+      .then((response) => response.json())
+      .then((systems) => {
+        setAllSystems(systems);
+        setFilteredSystems(systems);
+      });
+  }, []);
 
   return (
     <div className={styles.container}>
