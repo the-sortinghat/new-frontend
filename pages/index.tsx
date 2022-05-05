@@ -1,27 +1,14 @@
 import type { NextPage } from "next";
-import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import Header from "../components/Header";
 import styles from "../styles/Home.module.css";
 
 type System = {
   id: number;
   name: string;
   description: string;
-};
-
-const Header: React.FC = () => {
-  return (
-    <Head>
-      <title>Sorting Hat</title>
-      <meta
-        name="description"
-        content="A tool to characterize the architecture of service-based systems"
-      />
-      <link rel="icon" href="/favicon.ico" />
-    </Head>
-  );
 };
 
 const SearchInput: React.FC<{
@@ -101,7 +88,7 @@ const Home: NextPage = () => {
 
   return (
     <div className={styles.container}>
-      <Header />
+      <Header title="Sorting Hat" />
 
       <main className={styles.main}>
         <Link href="/systems/register">
