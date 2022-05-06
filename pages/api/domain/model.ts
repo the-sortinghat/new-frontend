@@ -1,24 +1,24 @@
 export type Operation = {
   from: number;
   to: number;
+  label: string;
 };
 
 export type Module = {
+  id: number;
   name: string;
-  servicesIds: number[];
 };
 
 export type Service = {
   id: number;
   name: string;
-  description: string;
+  responsibility: string;
   operations: string[];
+  moduleId: number;
 };
 
 export type Database = {
   id: number;
-  namespace: string;
-  make: string;
   model: string;
 };
 
@@ -29,9 +29,11 @@ export enum DatabaseAccessType {
 }
 
 export type DatabaseUsage = {
-  serviceId: number;
   databaseId: number;
+  serviceId: number;
+  role: string;
   accessType: DatabaseAccessType;
+  namespace: string;
 };
 
 export type Component = {
@@ -89,5 +91,5 @@ export type System = {
   databasesUsages: DatabaseUsage[];
   syncOperations: Operation[];
   asyncOperations: Operation[];
-  metrics: SystemMetrics;
+  //metrics: SystemMetrics;
 };
