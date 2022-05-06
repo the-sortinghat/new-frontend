@@ -1,4 +1,4 @@
-import { DatabaseAccessType, System } from "./domain/model";
+import { DatabaseAccessType, System } from "../../types/system";
 
 export const systems: System[] = [
   {

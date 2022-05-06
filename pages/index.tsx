@@ -5,12 +5,7 @@ import { useEffect, useState } from "react";
 import Header from "../components/Header";
 import { getAllSystems } from "../services/system_data";
 import styles from "../styles/Home.module.css";
-
-type System = {
-  id: number;
-  name: string;
-  description: string;
-};
+import { System } from "../types/system";
 
 const SearchInput: React.FC<{
   systems: System[];

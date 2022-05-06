@@ -1,5 +1,5 @@
 import { systems } from "./data";
-import { System } from "./domain/model";
+import { System } from "../../types/system";
 
 export const getAllSystems = (): System[] => systems;
 

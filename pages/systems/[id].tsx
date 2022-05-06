@@ -6,21 +6,20 @@ import Checkbox from "../../components/Checkbox";
 import Header from "../../components/Header";
 import { getSystemById } from "../../services/system_data";
 import styles from "../../styles/SystemPage.module.css";
+import { System } from "../../types/system";
 
 const Graph = dynamic(() => import("../../components/Graph"), { ssr: false });
 
 const SystemPage: NextPage = () => {
-  const [system, setSystem] = useState<any>(undefined);
+  const [system, setSystem] = useState<System>({} as System);
   const router = useRouter();
 
   useEffect(() => {
-    const { id } = router.query;
-    getSystemById(id as string).then((sys) => setSystem(sys));
-  }, [router.query]);
-
-  if (system === undefined) {
-    return <p>Loading...</p>;
-  }
+    if (router.isReady) {
+      const { id } = router.query;
+      getSystemById(id as string).then((sys) => setSystem(sys));
+    }
+  }, [router.isReady, router.query]);
 
   return (
     <div className={styles.container}>

@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { System } from "../domain/model";
+import { System } from "../../../types/system";
 import { getAllSystems } from "../system_repository";
 
 export default function handler(
