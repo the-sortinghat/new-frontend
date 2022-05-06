@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import Header from "../components/Header";
+import { getAllSystems } from "../services/system_data";
 import styles from "../styles/Home.module.css";
 
 type System = {
@@ -78,12 +79,10 @@ const Home: NextPage = () => {
   const [filteredSystems, setFilteredSystems] = useState<System[]>(allSystems);
 
   useEffect(() => {
-    fetch("api/systems")
-      .then((response) => response.json())
-      .then((systems) => {
-        setAllSystems(systems);
-        setFilteredSystems(systems);
-      });
+    getAllSystems().then((systems) => {
+      setAllSystems(systems);
+      setFilteredSystems(systems);
+    });
   }, []);
 
   return (

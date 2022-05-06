@@ -1,18 +1,30 @@
 import type { NextPage } from "next";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 import Checkbox from "../../components/Checkbox";
 import Header from "../../components/Header";
+import { getSystemById } from "../../services/system_data";
 import styles from "../../styles/SystemPage.module.css";
 
 const Graph = dynamic(() => import("../../components/Graph"), { ssr: false });
 
 const SystemPage: NextPage = () => {
+  const [system, setSystem] = useState<any>(undefined);
   const router = useRouter();
+
+  useEffect(() => {
+    const { id } = router.query;
+    getSystemById(id as string).then((sys) => setSystem(sys));
+  }, [router.query]);
+
+  if (system === undefined) {
+    return <p>Loading...</p>;
+  }
 
   return (
     <div className={styles.container}>
-      <Header title="InterSCity" />
+      <Header title={system.name} />
 
       <main className={styles.main}>
         <div className={styles.pageHeader}>
@@ -24,7 +36,7 @@ const SystemPage: NextPage = () => {
             &larr;
           </button>
 
-          <h1 className={styles.title}>InterSCity</h1>
+          <h1 className={styles.title}>{system.name}</h1>
         </div>
 
         <div className={styles.grid}>
