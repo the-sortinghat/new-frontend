@@ -10,10 +10,10 @@
   },
   "dependencies": {
     "axios": "^0.27.2",
-    "force-graph": "^1.42.9",
     "next": "12.1.6",
     "react": "18.1.0",
-    "react-dom": "18.1.0"
+    "react-dom": "18.1.0",
+    "vis-network": "^9.1.2"
   },
   "devDependencies": {
     "@types/node": "17.0.31",
