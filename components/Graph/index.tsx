@@ -51,7 +51,7 @@ const Graph: React.FC<{ system: System; dimensions: Dimensions }> = ({
   return (
     <CytoscapeComponent
       elements={elements}
-      style={{ width: "100%", height: "100%" }}
+      style={{ width: "100%", height: "100%", border: "1px solid #cccccc" }}
       stylesheet={[
         {
           selector: "node",
@@ -88,24 +88,14 @@ const Graph: React.FC<{ system: System; dimensions: Dimensions }> = ({
           },
         },
         {
-          selector: "edge[type = 'sync']",
-          style: {
-            "curve-style": "bezier",
-            "target-arrow-shape": "triangle",
-          },
-        },
-        {
           selector: "edge[type = 'async']",
           style: {
-            "curve-style": "bezier",
-            "target-arrow-shape": "triangle",
             "line-style": "dashed",
           },
         },
         {
           selector: "edge[type = 'db']",
           style: {
-            "curve-style": "bezier",
             label: "data(label)",
             "font-size": 5,
           },
@@ -113,9 +103,8 @@ const Graph: React.FC<{ system: System; dimensions: Dimensions }> = ({
       ]}
       layout={{
         name: "cose-bilkent",
-        ready: (e) => {
-          e.cy.removeData("*");
-          e.cy.add(elements);
+        stop: (e) => {
+          e.stopPropagation();
         },
       }}
       minZoom={0.5}

@@ -12,6 +12,9 @@ import { System } from "../../types/system";
 const Graph = dynamic(() => import("../../components/Graph"), {
   ssr: false,
 });
+const ImageKey = dynamic(() => import("../../components/ImageKey"), {
+  ssr: false,
+});
 
 const DimensionSelector: React.FC<{
   dimensions: Dimensions;
@@ -92,6 +95,9 @@ const SystemPage: NextPage = () => {
           />
           <div className={styles.view}>
             <Graph system={system} dimensions={dimensions} />
+            <div className={styles.imageKey}>
+              <ImageKey />
+            </div>
           </div>
           <div className={styles.metrics}>
             <h2>Metrics</h2>
