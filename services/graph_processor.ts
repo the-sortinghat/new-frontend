@@ -22,8 +22,6 @@ export default class GraphProcessor {
           type: "module",
         }))
       );
-
-    return this;
   }
 
   public sizeDimension(): GraphProcessor {

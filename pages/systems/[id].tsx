@@ -1,90 +1,54 @@
 import type { NextPage } from "next";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/router";
-import { ChangeEvent, Component, useEffect, useState } from "react";
-import Checkbox from "../../components/Checkbox";
+import { NextRouter, useRouter } from "next/router";
+import { useEffect, useState } from "react";
+import DimensionSelector from "../../components/DimensionSelector";
 import Header from "../../components/Header";
+import MetricsWrapper from "../../components/MetricsWrapper";
 import { getSystemById, getSystemMetrics } from "../../services/system_data";
 import styles from "../../styles/SystemPage.module.css";
-import { Dimension, Dimensions } from "../../types/dimensions";
+import { Dimensions } from "../../types/dimensions";
 import { System, SystemMetrics } from "../../types/system";
 
-const Graph = dynamic(() => import("../../components/Graph"), {
-  ssr: false,
-});
+const Graph = dynamic(() => import("../../components/Graph"), { ssr: false });
 const ImageKey = dynamic(() => import("../../components/ImageKey"), {
   ssr: false,
 });
 
-const DimensionSelector: React.FC<{
-  dimensions: Dimensions;
-  updateDimensions: (Dimensions) => void;
-}> = ({ dimensions, updateDimensions }) => {
-  const handleChange = (
-    event: ChangeEvent<HTMLInputElement>,
-    selected: Dimension
-  ) => {
-    event.target.checked
-      ? updateDimensions([selected, ...dimensions])
-      : updateDimensions(dimensions.filter((d) => d !== selected));
-  };
-
+const PageHeader: React.FC<{ router: NextRouter; title: string }> = ({
+  router,
+  title,
+}) => {
   return (
-    <div className={styles.dimensions}>
-      <p>Dimensions: </p>
-      <Checkbox name="Size" onChange={(e) => handleChange(e, Dimension.SIZE)} />
-      <Checkbox
-        name="Data coupling"
-        onChange={(e) => handleChange(e, Dimension.DATA_COUPLING)}
-      />
-      <Checkbox
-        name="Sync coupling"
-        onChange={(e) => handleChange(e, Dimension.SYNC_COUPLING)}
-      />
-      <Checkbox
-        name="Async coupling"
-        onChange={(e) => handleChange(e, Dimension.ASYNC_COUPLING)}
-      />
+    <div className={styles.pageHeader}>
+      <button
+        type="button"
+        className={styles.back}
+        onClick={() => router.back()}
+      >
+        &larr;
+      </button>
+
+      <h1 className={styles.title}>{title}</h1>
     </div>
   );
 };
 
-const MetricsWrapper: React.FC<{
-  metrics: SystemMetrics;
+const VisualizationAndMetricsWrapper: React.FC<{
+  system: System;
   dimensions: Dimensions;
-}> = ({ metrics, dimensions }) => {
-  const isNotEmpty = Object.keys(metrics).length > 0;
-  const metricsByDimension = {
-    [Dimension.SIZE]: metrics["Size"],
-    [Dimension.DATA_COUPLING]: metrics["Data source coupling"],
-    [Dimension.SYNC_COUPLING]: metrics["Synchronous coupling"],
-    [Dimension.ASYNC_COUPLING]: metrics["Asynchronous coupling"],
-  };
-  const metricsThatWillBeDisplayed = dimensions.reduce(
-    (acc, dimension) => ({ ...acc, ...metricsByDimension[dimension] }),
-    {}
-  );
-
+  metrics: SystemMetrics;
+}> = ({ system, dimensions, metrics }) => {
   return (
-    <div className={styles.metrics}>
-      <h2>Metrics</h2>
-      {isNotEmpty &&
-        Object.entries(metricsThatWillBeDisplayed).map(([metric, value]) => {
-          if (value instanceof Object) {
-            return (
-              <div key={metric}>
-                <p>{metric}:</p>
-                <ul>
-                  {Object.entries(value as {}).map(([component, value]) => (
-                    <li key={component}>{`${component}: ${value}`}</li>
-                  ))}
-                </ul>
-              </div>
-            );
-          }
+    <div className={styles.grid}>
+      <div className={styles.view}>
+        <Graph system={system} dimensions={dimensions} />
+        <div className={styles.imageKey}>
+          <ImageKey />
+        </div>
+      </div>
 
-          return <p key={metric}>{`${metric}: ${value}`}</p>;
-        })}
+      <MetricsWrapper metrics={metrics} dimensions={dimensions} />
     </div>
   );
 };
@@ -124,33 +88,18 @@ const SystemPage: NextPage = () => {
       <Header title={system.name} />
 
       <main className={styles.main}>
-        <div className={styles.pageHeader}>
-          <button
-            type="button"
-            className={styles.back}
-            onClick={() => router.back()}
-          >
-            &larr;
-          </button>
-
-          <h1 className={styles.title}>{system.name}</h1>
-        </div>
+        <PageHeader router={router} title={system.name} />
 
         <DimensionSelector
           dimensions={dimensions}
           updateDimensions={setDimensions}
         />
 
-        <div className={styles.grid}>
-          <div className={styles.view}>
-            <Graph system={system} dimensions={dimensions} />
-            <div className={styles.imageKey}>
-              <ImageKey />
-            </div>
-          </div>
-
-          <MetricsWrapper metrics={systemMetrics} dimensions={dimensions} />
-        </div>
+        <VisualizationAndMetricsWrapper
+          system={system}
+          dimensions={dimensions}
+          metrics={systemMetrics}
+        />
       </main>
     </div>
   );
