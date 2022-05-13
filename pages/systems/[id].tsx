@@ -31,7 +31,7 @@ const DimensionSelector: React.FC<{
 
   return (
     <div className={styles.dimensions}>
-      <h2>Dimensions</h2>
+      <p>Dimensions: </p>
       <Checkbox name="Size" onChange={(e) => handleChange(e, Dimension.SIZE)} />
       <Checkbox
         name="Data coupling"
@@ -88,11 +88,12 @@ const SystemPage: NextPage = () => {
           <h1 className={styles.title}>{system.name}</h1>
         </div>
 
+        <DimensionSelector
+          dimensions={dimensions}
+          updateDimensions={setDimensions}
+        />
+
         <div className={styles.grid}>
-          <DimensionSelector
-            dimensions={dimensions}
-            updateDimensions={setDimensions}
-          />
           <div className={styles.view}>
             <Graph system={system} dimensions={dimensions} />
             <div className={styles.imageKey}>
