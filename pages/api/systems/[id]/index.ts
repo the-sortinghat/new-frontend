@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { System } from "../../../types/system";
-import { findSystemById } from "../system_repository";
+import { System } from "../../../../types/system";
+import { findSystemById } from "../../system_repository";
 
 type ErrorMessage = { error: string };
 

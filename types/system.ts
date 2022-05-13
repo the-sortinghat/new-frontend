@@ -51,30 +51,31 @@ export type SizeMetrics = {
 };
 
 export type DataCouplingMetrics = {
-  "Number of data sources per component": number;
-  "Number of data sources that each component share with others": number;
-  "Number of data sources where each component performs write-only operations": number;
-  "Number of data sources where each component performs read-only operations": number;
-  "Number of data sources where each component performs read and operations": number;
+  "Number of data sources per component": Component;
+  "Number of data sources that each component share with others": Component;
+  "Number of data sources where each component performs write-only operations": Component;
+  "Number of data sources where each component performs read-only operations": Component;
+  "Number of data sources where each component performs read and operations": Component;
 };
 
 export type SyncCouplingMetrics = {
-  "Number of clients that invoke the operations of a given component": number;
-  "Number of components from which a given component invokes operations": number;
-  "Number of different operations invoked by each depending component": number;
-  "Number of different operations invoked from other components": number;
+  "Number of clients that invoke the operations of a given component": Component;
+  "Number of components from which a given component invokes operations": Component;
+  "Number of different operations invoked by each depending component": Component;
+  "Number of different operations invoked from other components": Component;
 };
 
 export type AsyncCouplingMetrics = {
-  "Number of clients that consume messages published by a given component": number;
-  "Number of components from which a given component consumes messages": number;
-  "Number of different types of messages consumed by each depending component": number;
-  "Number of different types of messages consumed from other components": number;
-  "Number of components that consume messages from the queue": number;
-  "Number of components that publish messages in the queue": number;
+  "Number of clients that consume messages published by a given component": Component;
+  "Number of components from which a given component consumes messages": Component;
+  "Number of different types of messages consumed by each depending component": Component;
+  "Number of different types of messages consumed from other components": Component;
+  "Number of components that consume messages from the queue": Component;
+  "Number of components that publish messages in the queue": Component;
 };
 
 export type SystemMetrics = {
+  systemId: number;
   Size: SizeMetrics;
   "Data source coupling": DataCouplingMetrics;
   "Synchronous coupling": SyncCouplingMetrics;
@@ -91,5 +92,4 @@ export type System = {
   databasesUsages: DatabaseUsage[];
   syncOperations: Operation[];
   asyncOperations: Operation[];
-  //metrics: SystemMetrics;
 };

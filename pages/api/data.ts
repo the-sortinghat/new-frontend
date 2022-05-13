@@ -1,4 +1,4 @@
-import { DatabaseAccessType, System } from "../../types/system";
+import { DatabaseAccessType, System, SystemMetrics } from "../../types/system";
 
 export const systems: System[] = [
   {
@@ -147,5 +147,96 @@ export const systems: System[] = [
       { from: 4, to: 1, label: "ResourceCreator, ResourceUpdater" },
       { from: 4, to: 2, label: "ResourceCreator, ResourceUpdater" },
     ],
+  },
+];
+
+export const metrics: SystemMetrics[] = [
+  {
+    systemId: 1,
+    Size: {
+      "Number of system’s components": {
+        modules: 5,
+        services: 5,
+      },
+      "Number of operations per component": {
+        modules: 5.4,
+        services: 5.4,
+      },
+      "Number of services per modules": 1,
+      "Number of services with deployment dependency": 0,
+      "Largest service": "Resource Catalog (12 operations)",
+      "Smallest service": "Resource Discovery (1 operation)",
+    },
+    "Data source coupling": {
+      "Number of data sources per component": {
+        modules: 0,
+        services: 0,
+      },
+      "Number of data sources that each component share with others": {
+        modules: 0,
+        services: 0,
+      },
+      "Number of data sources where each component performs read and operations":
+        {
+          modules: 0,
+          services: 0,
+        },
+      "Number of data sources where each component performs read-only operations":
+        {
+          modules: 0,
+          services: 0,
+        },
+      "Number of data sources where each component performs write-only operations":
+        {
+          modules: 0,
+          services: 0,
+        },
+    },
+    "Synchronous coupling": {
+      "Number of clients that invoke the operations of a given component": {
+        modules: 0,
+        services: 0,
+      },
+      "Number of components from which a given component invokes operations": {
+        modules: 0,
+        services: 0,
+      },
+      "Number of different operations invoked by each depending component": {
+        modules: 0,
+        services: 0,
+      },
+      "Number of different operations invoked from other components": {
+        modules: 0,
+        services: 0,
+      },
+    },
+    "Asynchronous coupling": {
+      "Number of clients that consume messages published by a given component":
+        {
+          modules: 0,
+          services: 0,
+        },
+      "Number of components from which a given component consumes messages": {
+        modules: 0,
+        services: 0,
+      },
+      "Number of components that consume messages from the queue": {
+        modules: 0,
+        services: 0,
+      },
+      "Number of components that publish messages in the queue": {
+        modules: 0,
+        services: 0,
+      },
+      "Number of different types of messages consumed by each depending component":
+        {
+          modules: 0,
+          services: 0,
+        },
+      "Number of different types of messages consumed from other components": {
+        modules: 0,
+        services: 0,
+      },
+    },
   },
 ];
