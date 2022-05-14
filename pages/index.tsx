@@ -72,11 +72,13 @@ const Footer: React.FC = () => {
 const Home: NextPage = () => {
   const [allSystems, setAllSystems] = useState<System[]>([]);
   const [filteredSystems, setFilteredSystems] = useState<System[]>(allSystems);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     getAllSystems().then((systems) => {
       setAllSystems(systems);
       setFilteredSystems(systems);
+      setLoading(false);
     });
   }, []);
 
@@ -102,7 +104,11 @@ const Home: NextPage = () => {
 
         <SearchInput systems={allSystems} onSearch={setFilteredSystems} />
 
-        <SystemsList systems={filteredSystems} />
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          <SystemsList systems={filteredSystems} />
+        )}
       </main>
 
       <Footer />
