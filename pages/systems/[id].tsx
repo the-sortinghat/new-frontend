@@ -1,17 +1,17 @@
-import type { NextPage } from "next";
-import dynamic from "next/dynamic";
-import { NextRouter, useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import DimensionSelector from "../../components/DimensionSelector";
-import Header from "../../components/Header";
-import MetricsWrapper from "../../components/MetricsWrapper";
-import { getSystemById, getSystemMetrics } from "../../services/system_data";
-import styles from "../../styles/SystemPage.module.css";
-import { Dimensions } from "../../types/dimensions";
-import { System, SystemMetrics } from "../../types/system";
+import type { NextPage } from "next";
+import { NextRouter, useRouter } from "next/router";
+import dynamic from "next/dynamic";
+import DimensionSelector from "@/components/DimensionSelector";
+import Header from "@/components/Header";
+import MetricsWrapper from "@/components/MetricsWrapper";
+import styles from "@/styles/SystemPage.module.css";
+import { Dimensions } from "@/types/dimensions";
+import { getSystemById, getSystemMetrics } from "@/services/system_data";
+import { System, SystemMetrics } from "@/types/system";
 
-const Graph = dynamic(() => import("../../components/Graph"), { ssr: false });
-const ImageKey = dynamic(() => import("../../components/ImageKey"), {
+const Graph = dynamic(() => import("@/components/Graph"), { ssr: false });
+const ImageKey = dynamic(() => import("@/components/ImageKey"), {
   ssr: false,
 });
 

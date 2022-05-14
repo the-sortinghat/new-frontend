@@ -1,5 +1,5 @@
-import { metrics, systems } from "./data";
-import { System, SystemMetrics } from "../../types/system";
+import { System, SystemMetrics } from "@/types/system";
+import { metrics, systems } from "@/api/data";
 
 export const getAllSystems = (): System[] => systems;
 

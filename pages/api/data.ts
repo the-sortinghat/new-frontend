@@ -1,4 +1,4 @@
-import { DatabaseAccessType, System, SystemMetrics } from "../../types/system";
+import { DatabaseAccessType, System, SystemMetrics } from "@/types/system";
 
 export const systems: System[] = [
   {

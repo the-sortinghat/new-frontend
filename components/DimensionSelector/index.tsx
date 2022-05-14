@@ -1,11 +1,11 @@
 import { ChangeEvent } from "react";
-import { Dimension, Dimensions } from "../../types/dimensions";
-import Checkbox from "../Checkbox";
-import styles from "./styles.module.css";
+import styles from "@/components/DimensionSelector/styles.module.css";
+import { Dimension, Dimensions } from "@/types/dimensions";
+import Checkbox from "@/components/Checkbox";
 
 type Props = {
   dimensions: Dimensions;
-  updateDimensions: (Dimensions) => void;
+  updateDimensions: (arg: Dimensions) => void;
 };
 
 const DimensionSelector: React.FC<Props> = ({

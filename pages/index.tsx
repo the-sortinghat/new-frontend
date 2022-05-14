@@ -1,11 +1,11 @@
+import Header from "@/components/Header";
 import type { NextPage } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import Header from "../components/Header";
-import { getAllSystems } from "../services/system_data";
-import styles from "../styles/Home.module.css";
-import { System } from "../types/system";
+import styles from "@/styles/Home.module.css";
+import { System } from "@/types/system";
+import { getAllSystems } from "@/services/system_data";
 
 const SearchInput: React.FC<{
   systems: System[];

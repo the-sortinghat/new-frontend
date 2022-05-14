@@ -1,6 +1,6 @@
+import { System } from "@/types/system";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { System } from "../../../types/system";
-import { getAllSystems } from "../system_repository";
+import { getAllSystems } from "@/api/system_repository";
 
 export default function handler(
   req: NextApiRequest,

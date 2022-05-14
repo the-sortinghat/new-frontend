@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import ImageKeyGenerator from "../services/graph/image_key";
+import ImageKeyGenerator from "@/services/graph/image_key";
 
 const ImageKey: React.FC = () => {
   useEffect(() => {

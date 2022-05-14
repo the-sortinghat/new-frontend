@@ -1,7 +1,7 @@
 import { useEffect } from "react";
-import GraphGenerator from "../services/graph/generator";
-import { Dimensions } from "../types/dimensions";
-import { System } from "../types/system";
+import GraphGenerator from "@/services/graph/generator";
+import { Dimensions } from "@/types/dimensions";
+import { System } from "@/types/system";
 
 type Props = { system: System; dimensions: Dimensions };
 

@@ -1,8 +1,8 @@
+import { Dimensions } from "@/types/dimensions";
+import { System } from "@/types/system";
 import cytoscape, { EdgeDefinition, NodeDefinition } from "cytoscape";
 import COSEBilkent from "cytoscape-cose-bilkent";
-import { Dimensions } from "../../types/dimensions";
-import { System } from "../../types/system";
-import GraphDataProcessor from "./data_processor";
+import GraphDataProcessor from "@/services/graph/data_processor";
 
 type Payload = {
   system: System;

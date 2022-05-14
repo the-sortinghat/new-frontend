@@ -1,6 +1,6 @@
-import { Dimension, Dimensions } from "../../types/dimensions";
-import { SystemMetrics } from "../../types/system";
-import styles from "./styles.module.css";
+import { Dimension, Dimensions } from "@/types/dimensions";
+import { SystemMetrics } from "@/types/system";
+import styles from "@/components/MetricsWrapper/styles.module.css";
 
 type Props = {
   metrics: SystemMetrics;

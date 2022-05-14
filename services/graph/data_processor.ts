@@ -1,6 +1,6 @@
-import { Dimension, Dimensions } from "../../types/dimensions";
-import { Node, Edge, Graph } from "../../types/graph";
-import { DatabaseAccessType, Operation, System } from "../../types/system";
+import { Dimension, Dimensions } from "@/types/dimensions";
+import { Node, Edge, Graph } from "@/types/graph";
+import { DatabaseAccessType, Operation, System } from "@/types/system";
 
 export default class GraphDataProcessor {
   private nodes: Node[] = [];

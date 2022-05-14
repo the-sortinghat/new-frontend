@@ -1,6 +1,6 @@
+import { SystemMetrics } from "@/types/system";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { SystemMetrics } from "../../../../types/system";
-import { findSystemById, getSystemMetrics } from "../../system_repository";
+import { findSystemById, getSystemMetrics } from "@/api/system_repository";
 
 type ErrorMessage = { error: string };
 

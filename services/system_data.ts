@@ -1,4 +1,4 @@
-import { api } from "./axios";
+import { api } from "@/services/axios";
 
 export const getAllSystems = async () => (await api.get("/api/systems")).data;
 export const getSystemById = async (id: string) =>
