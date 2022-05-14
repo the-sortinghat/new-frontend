@@ -10,6 +10,17 @@ type Props = {
 const { SIZE, DATA_COUPLING, SYNC_COUPLING, ASYNC_COUPLING } = Dimension;
 
 const MetricsWrapper: React.FC<Props> = ({ metrics, dimensions }) => {
+  const isAnyDimensionSelected = dimensions.length > 0;
+
+  if (!isAnyDimensionSelected) {
+    return (
+      <div className={styles.metrics}>
+        <h2>Metrics</h2>
+        <p>Select a dimension to see the metrics.</p>
+      </div>
+    );
+  }
+
   const isNotEmpty = Object.keys(metrics).length > 0;
   const metricsByDimension = {
     [SIZE]: metrics["Size"],
