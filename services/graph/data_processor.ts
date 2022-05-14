@@ -1,11 +1,12 @@
-import { Node, Edge, Graph } from "../types/graph";
-import { DatabaseAccessType, Operation, System } from "../types/system";
+import { Dimension, Dimensions } from "../../types/dimensions";
+import { Node, Edge, Graph } from "../../types/graph";
+import { DatabaseAccessType, Operation, System } from "../../types/system";
 
-export default class GraphProcessor {
+export default class GraphDataProcessor {
   private nodes: Node[] = [];
   private edges: Edge[] = [];
 
-  constructor(private readonly system: System) {
+  private constructor(private readonly system: System) {
     this.nodes = this.nodes
       .concat(
         system.services.map(({ id, name, moduleId }) => ({
@@ -24,7 +25,7 @@ export default class GraphProcessor {
       );
   }
 
-  public sizeDimension(): GraphProcessor {
+  private sizeDimension(): GraphDataProcessor {
     this.nodes.forEach((node) => {
       node.operations = this.system.services.find(
         (s) => s.id === node.id
@@ -34,7 +35,7 @@ export default class GraphProcessor {
     return this;
   }
 
-  public dataCouplingDimension(): GraphProcessor {
+  private dataCouplingDimension(): GraphDataProcessor {
     this.nodes = this.nodes.concat(
       this.system.databasesUsages.map(({ databaseId, namespace }) => ({
         id: `db${databaseId}`,
@@ -72,7 +73,7 @@ export default class GraphProcessor {
     return this;
   }
 
-  public syncCouplingDimension(): GraphProcessor {
+  private syncCouplingDimension(): GraphDataProcessor {
     this.edges = this.edges.concat(
       this.system.syncOperations.map(
         ({ from, to }: Operation): Edge => ({
@@ -87,7 +88,7 @@ export default class GraphProcessor {
     return this;
   }
 
-  public asyncCouplingDimension(): GraphProcessor {
+  private asyncCouplingDimension(): GraphDataProcessor {
     this.edges = this.edges.concat(
       this.system.asyncOperations.map(
         ({ from, to }: Operation): Edge => ({
@@ -102,7 +103,26 @@ export default class GraphProcessor {
     return this;
   }
 
-  public build(): Graph {
-    return { nodes: this.nodes, edges: this.edges };
+  public static build(system: System, dimensions: Dimensions): Graph {
+    let processor = new GraphDataProcessor(system);
+    const { SIZE, DATA_COUPLING, SYNC_COUPLING, ASYNC_COUPLING } = Dimension;
+    const buildOptions = {
+      [SIZE]() {
+        processor = processor.sizeDimension();
+      },
+      [DATA_COUPLING]() {
+        processor = processor.dataCouplingDimension();
+      },
+      [SYNC_COUPLING]() {
+        processor = processor.syncCouplingDimension();
+      },
+      [ASYNC_COUPLING]() {
+        processor = processor.asyncCouplingDimension();
+      },
+    };
+
+    dimensions.forEach((dimension) => buildOptions[dimension]());
+
+    return { nodes: processor.nodes, edges: processor.edges };
   }
 }

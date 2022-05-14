@@ -6,7 +6,13 @@ import { System } from "../types/system";
 type Props = { system: System; dimensions: Dimensions };
 
 const Graph: React.FC<Props> = ({ system, dimensions }) => {
-  useEffect(() => GraphGenerator(system, dimensions));
+  useEffect(() => {
+    GraphGenerator({
+      system,
+      dimensions,
+      container: document.getElementById("graph")!,
+    });
+  });
 
   return (
     <div

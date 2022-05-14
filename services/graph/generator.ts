@@ -1,40 +1,26 @@
 import cytoscape, { EdgeDefinition, NodeDefinition } from "cytoscape";
 import COSEBilkent from "cytoscape-cose-bilkent";
-import { Dimension, Dimensions } from "../../types/dimensions";
-import { Graph } from "../../types/graph";
+import { Dimensions } from "../../types/dimensions";
 import { System } from "../../types/system";
-import GraphProcessor from "../graph_processor";
+import GraphDataProcessor from "./data_processor";
 
-const processGraphData = (system: System, dimensions: Dimensions): Graph => {
-  let processor = new GraphProcessor(system);
-  const { SIZE, DATA_COUPLING, SYNC_COUPLING, ASYNC_COUPLING } = Dimension;
-  const buildOptions = {
-    [SIZE]() {
-      processor = processor.sizeDimension();
-    },
-    [DATA_COUPLING]() {
-      processor = processor.dataCouplingDimension();
-    },
-    [SYNC_COUPLING]() {
-      processor = processor.syncCouplingDimension();
-    },
-    [ASYNC_COUPLING]() {
-      processor = processor.asyncCouplingDimension();
-    },
-  };
-
-  dimensions.forEach((dimension) => buildOptions[dimension]());
-
-  return processor.build();
+type Payload = {
+  system: System;
+  dimensions: Dimensions;
+  container: HTMLElement;
 };
 
-export default function GraphGenerator(system: System, dimensions: Dimensions) {
-  const graph = processGraphData(system, dimensions);
+export default function GraphGenerator({
+  system,
+  dimensions,
+  container,
+}: Payload) {
+  const graph = GraphDataProcessor.build(system, dimensions);
 
   cytoscape.use(COSEBilkent);
 
   cytoscape({
-    container: document.getElementById("graph"),
+    container,
     minZoom: 0.5,
     maxZoom: 2,
     boxSelectionEnabled: false,
