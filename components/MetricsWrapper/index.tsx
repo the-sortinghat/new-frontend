@@ -7,16 +7,24 @@ type Props = {
   dimensions: Dimensions;
 };
 
+const { SIZE, DATA_COUPLING, SYNC_COUPLING, ASYNC_COUPLING } = Dimension;
+
 const MetricsWrapper: React.FC<Props> = ({ metrics, dimensions }) => {
   const isNotEmpty = Object.keys(metrics).length > 0;
   const metricsByDimension = {
-    [Dimension.SIZE]: metrics["Size"],
-    [Dimension.DATA_COUPLING]: metrics["Data source coupling"],
-    [Dimension.SYNC_COUPLING]: metrics["Synchronous coupling"],
-    [Dimension.ASYNC_COUPLING]: metrics["Asynchronous coupling"],
+    [SIZE]: metrics["Size"],
+    [DATA_COUPLING]: metrics["Data source coupling"],
+    [SYNC_COUPLING]: metrics["Synchronous coupling"],
+    [ASYNC_COUPLING]: metrics["Asynchronous coupling"],
+  };
+  const dimensionsToCorrectName = {
+    [SIZE]: "Size",
+    [DATA_COUPLING]: "Data source coupling",
+    [SYNC_COUPLING]: "Synchronous coupling",
+    [ASYNC_COUPLING]: "Asynchronous coupling",
   };
   const metricsThatWillBeDisplayed = dimensions.reduce(
-    (acc, dimension) => ({ ...acc, ...metricsByDimension[dimension] }),
+    (acc, dim) => ({ ...acc, [dim]: metricsByDimension[dim] }),
     {}
   );
 
@@ -24,22 +32,31 @@ const MetricsWrapper: React.FC<Props> = ({ metrics, dimensions }) => {
     <div className={styles.metrics}>
       <h2>Metrics</h2>
       {isNotEmpty &&
-        Object.entries(metricsThatWillBeDisplayed).map(([metric, value]) => {
-          if (value instanceof Object) {
-            return (
-              <div key={metric}>
-                <p>{metric}:</p>
-                <ul>
-                  {Object.entries(value as {}).map(([component, value]) => (
-                    <li key={component}>{`${component}: ${value}`}</li>
-                  ))}
-                </ul>
-              </div>
-            );
-          }
+        Object.entries(metricsThatWillBeDisplayed).map(
+          ([dimension, metrics]) => (
+            <div key={dimension}>
+              <h3>{dimensionsToCorrectName[dimension as Dimension]}</h3>
+              {Object.entries(metrics as {}).map(([metric, value]) => {
+                if (value instanceof Object) {
+                  return (
+                    <div key={metric}>
+                      <p>{metric}:</p>
+                      <ul>
+                        {Object.entries(value as {}).map(
+                          ([component, value]) => (
+                            <li key={component}>{`${component}: ${value}`}</li>
+                          )
+                        )}
+                      </ul>
+                    </div>
+                  );
+                }
 
-          return <p key={metric}>{`${metric}: ${value}`}</p>;
-        })}
+                return <p key={metric}>{`${metric}: ${value}`}</p>;
+              })}
+            </div>
+          )
+        )}
     </div>
   );
 };

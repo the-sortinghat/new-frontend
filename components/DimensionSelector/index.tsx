@@ -8,6 +8,8 @@ type Props = {
   updateDimensions: (arg: Dimensions) => void;
 };
 
+const { SIZE, DATA_COUPLING, SYNC_COUPLING, ASYNC_COUPLING } = Dimension;
+
 const DimensionSelector: React.FC<Props> = ({
   dimensions,
   updateDimensions,
@@ -16,9 +18,29 @@ const DimensionSelector: React.FC<Props> = ({
     event: ChangeEvent<HTMLInputElement>,
     selected: Dimension
   ) => {
-    event.target.checked
-      ? updateDimensions([selected, ...dimensions])
-      : updateDimensions(dimensions.filter((d) => d !== selected));
+    const mapPreviousSelectedDimensions = {
+      [SIZE]: "",
+      [DATA_COUPLING]: "",
+      [SYNC_COUPLING]: "",
+      [ASYNC_COUPLING]: "",
+    };
+    dimensions.forEach((dim) => (mapPreviousSelectedDimensions[dim] = dim));
+
+    const positionByDimension = {
+      [SIZE]: 0,
+      [DATA_COUPLING]: 1,
+      [SYNC_COUPLING]: 2,
+      [ASYNC_COUPLING]: 3,
+    };
+    const newList = Object.keys(mapPreviousSelectedDimensions).reduce(
+      (acc, key) => [...acc, mapPreviousSelectedDimensions[key as Dimension]],
+      [] as string[]
+    );
+    newList[positionByDimension[selected]] = event.target.checked
+      ? selected
+      : "";
+
+    updateDimensions(newList.filter((elem) => elem !== "") as Dimension[]);
   };
 
   return (
