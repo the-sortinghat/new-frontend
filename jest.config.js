@@ -9,10 +9,14 @@ const createJestConfig = nextJest({
 const customJestConfig = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   moduleNameMapper: {
+    '^.+\\.module\\.(css|sass|scss)$': 'identity-obj-proxy',
     // Handle module aliases (this will be automatically configured for you soon)
     '^@/components/(.*)$': '<rootDir>/components/$1',
-
     '^@/pages/(.*)$': '<rootDir>/pages/$1',
+    '^@/api/(.*)$': '<rootDir>/pages/api/$1',
+    '^@/styles/(.*)$': '<rootDir>/styles/$1',
+    '^@/services/(.*)$': '<rootDir>/services/$1',
+    '^@/types/(.*)$': '<rootDir>/types/$1'
   },
   testEnvironment: 'jest-environment-jsdom',
 }
