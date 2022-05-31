@@ -52,13 +52,28 @@ const MetricsWrapper: React.FC<Props> = ({ metrics, dimensions }) => {
                   return (
                     <div key={metric}>
                       <p>{metric}:</p>
-                      <ul>
-                        {Object.entries(value as {}).map(
-                          ([component, value]) => (
-                            <li key={component}>{`${component}: ${value}`}</li>
-                          )
-                        )}
-                      </ul>
+                      {Object.entries(value as {}).map(
+                        ([componentType, value]) => (
+                          <div key={componentType}>
+                            {value instanceof Object ? (
+                              <>
+                                <p>- {componentType}:</p>
+                                <ul>
+                                  {Object.entries(value as {}).map(
+                                    ([component, value]) => (
+                                      <li
+                                        key={component}
+                                      >{`${component}: ${value}`}</li>
+                                    )
+                                  )}
+                                </ul>
+                              </>
+                            ) : (
+                              <p>{`${componentType}: ${value}`}</p>
+                            )}
+                          </div>
+                        )
+                      )}
                     </div>
                   );
                 }

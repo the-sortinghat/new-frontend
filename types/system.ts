@@ -23,9 +23,9 @@ export type Database = {
 };
 
 export enum DatabaseAccessType {
-  read,
-  write,
-  readAndWrite,
+  read = "Read",
+  write = "Write",
+  readAndWrite = "ReadWrite",
 }
 
 export type DatabaseUsage = {
