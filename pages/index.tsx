@@ -52,23 +52,6 @@ const SystemsList: React.FC<{ systems: System[] }> = ({ systems }) => {
   );
 };
 
-const Footer: React.FC = () => {
-  const getCurrentYear = () => new Date().getFullYear();
-
-  return (
-    <footer className={styles.footer}>
-      <a
-        href="https://github.com/erickrodrigs"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Copyright © 2021 - {getCurrentYear()}. Developed by Erick Rodrigues de
-        Santana.
-      </a>
-    </footer>
-  );
-};
-
 const Home: NextPage = () => {
   const [allSystems, setAllSystems] = useState<System[]>([]);
   const [filteredSystems, setFilteredSystems] = useState<System[]>(allSystems);
@@ -110,8 +93,6 @@ const Home: NextPage = () => {
           <SystemsList systems={filteredSystems} />
         )}
       </main>
-
-      <Footer />
     </div>
   );
 };
