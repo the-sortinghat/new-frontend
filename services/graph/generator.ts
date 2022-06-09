@@ -1,7 +1,6 @@
 import { Dimensions } from "@/types/dimensions";
 import { System } from "@/types/system";
 import cytoscape, { EdgeDefinition, NodeDefinition } from "cytoscape";
-import COSEBilkent from "cytoscape-cose-bilkent";
 import GraphDataProcessor from "@/services/graph/data_processor";
 
 type Payload = {
@@ -16,8 +15,6 @@ export default function GraphGenerator({
   container,
 }: Payload) {
   const graph = GraphDataProcessor.build(system, dimensions);
-
-  cytoscape.use(COSEBilkent);
 
   cytoscape({
     container,
@@ -55,7 +52,7 @@ export default function GraphGenerator({
         selector: "edge",
         style: {
           width: 1,
-          "curve-style": "bezier",
+          "curve-style": "unbundled-bezier",
           "target-arrow-shape": "triangle",
           "arrow-scale": 0.5,
         },
@@ -83,7 +80,7 @@ export default function GraphGenerator({
       })) as EdgeDefinition[],
     },
     layout: {
-      name: "cose-bilkent",
+      name: "grid",
     },
   });
 }
