@@ -48,7 +48,11 @@ const VisualizationAndMetricsWrapper: React.FC<{
         </div>
       </div>
 
-      <MetricsWrapper metrics={metrics} dimensions={dimensions} />
+      <MetricsWrapper
+        metrics={metrics}
+        dimensions={dimensions}
+        components={{ modules: system.modules, services: system.services }}
+      />
     </div>
   );
 };
