@@ -7,19 +7,21 @@ type Payload = {
   system: System;
   dimensions: Dimensions;
   container: HTMLElement;
+  options: { [key: string]: any };
 };
 
 export default function GraphGenerator({
   system,
   dimensions,
   container,
+  options,
 }: Payload) {
   const graph = GraphDataProcessor.build(system, dimensions);
 
   cytoscape({
     container,
-    minZoom: 0.5,
-    maxZoom: 2,
+    minZoom: options.zoom,
+    userZoomingEnabled: false,
     boxSelectionEnabled: false,
     autounselectify: true,
     style: [
