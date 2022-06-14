@@ -17,6 +17,7 @@ export default function GraphGenerator({
   options,
 }: Payload) {
   const graph = GraphDataProcessor.build(system, dimensions);
+  const { setSelectedService } = options;
 
   const cy = cytoscape({
     container,
@@ -161,10 +162,14 @@ export default function GraphGenerator({
     if (clicked.size() === 1 && clicked.first() !== node) {
       deselect(clicked.first());
       select(node);
+
+      if (node.data().type === "service") setSelectedService(node.data().label);
     } else if (node.hasClass("highlight")) {
       deselect(node);
+      setSelectedService("");
     } else {
       select(node);
+      if (node.data().type === "service") setSelectedService(node.data().label);
     }
   });
 }

@@ -3,19 +3,32 @@ import GraphGenerator from "@/services/graph/generator";
 import { Dimensions } from "@/types/dimensions";
 import { System } from "@/types/system";
 
-type Props = { system: System; dimensions: Dimensions };
+type Props = {
+  system: System;
+  dimensions: Dimensions;
+  setSelection: (_: string) => void;
+};
 
-const Graph: React.FC<Props> = ({ system, dimensions }) => {
+const Graph: React.FC<Props> = ({ system, dimensions, setSelection }) => {
   const [zoom, setZoom] = useState(0.5);
+  const [selectedService, setSelectedService] = useState("");
 
   useEffect(() => {
     GraphGenerator({
       system,
       dimensions,
       container: document.getElementById("graph")!,
-      options: { zoom },
+      options: { zoom, setSelectedService },
     });
   }, [dimensions, system, zoom]);
+
+  useEffect(() => {
+    setSelectedService("");
+  }, [dimensions]);
+
+  useEffect(() => {
+    setSelection(selectedService);
+  }, [selectedService, setSelection]);
 
   return (
     <div

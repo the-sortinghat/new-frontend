@@ -39,10 +39,15 @@ const VisualizationAndMetricsWrapper: React.FC<{
   dimensions: Dimensions;
   metrics: SystemMetrics;
 }> = ({ system, dimensions, metrics }) => {
+  const [selectedService, setSelectedService] = useState("");
   return (
     <div className={styles.grid}>
       <div className={styles.view}>
-        <Graph system={system} dimensions={dimensions} />
+        <Graph
+          system={system}
+          dimensions={dimensions}
+          setSelection={setSelectedService}
+        />
         <div className={styles.imageKey}>
           <ImageKey />
         </div>
@@ -51,13 +56,14 @@ const VisualizationAndMetricsWrapper: React.FC<{
       <MetricsWrapper
         metrics={metrics}
         dimensions={dimensions}
-        components={{ modules: system.modules, services: system.services }}
+        selectedService={selectedService}
       />
     </div>
   );
 };
 
 const SystemPage: NextPage = () => {
+  const [loading, setLoading] = useState(true);
   const [dimensions, setDimensions] = useState<Dimensions>([]);
   const [system, setSystem] = useState<System>({
     id: -1,
@@ -83,9 +89,14 @@ const SystemPage: NextPage = () => {
           setSystem(sys);
           return getSystemMetrics(id as string);
         })
-        .then((metrics) => setSystemMetrics(metrics));
+        .then((metrics) => {
+          setSystemMetrics(metrics);
+          setLoading(false);
+        });
     }
   }, [router.isReady, router.query]);
+
+  if (loading) return <p>Loading...</p>;
 
   return (
     <div className={styles.container}>
