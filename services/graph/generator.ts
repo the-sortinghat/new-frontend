@@ -18,10 +18,9 @@ export default function GraphGenerator({
 }: Payload) {
   const graph = GraphDataProcessor.build(system, dimensions);
 
-  cytoscape({
+  const cy = cytoscape({
     container,
     minZoom: options.zoom,
-    userZoomingEnabled: false,
     boxSelectionEnabled: false,
     autounselectify: true,
     style: [
@@ -31,7 +30,10 @@ export default function GraphGenerator({
           content: "data(label)",
           width: 15,
           height: 15,
+          "border-width": "1px",
+          "border-color": "black",
           "font-size": 7,
+          "font-weight": "bold",
           "text-valign": "bottom",
           "text-halign": "center",
           "text-margin-y": 2,
@@ -45,9 +47,17 @@ export default function GraphGenerator({
         },
       },
       {
+        selector: "node.highlight",
+        style: {
+          backgroundColor: "#6b46c1",
+          opacity: 1,
+        },
+      },
+      {
         selector: ":parent",
         style: {
           label: "",
+          "border-width": "1px",
         },
       },
       {
@@ -56,7 +66,7 @@ export default function GraphGenerator({
           width: 1,
           "curve-style": "unbundled-bezier",
           "target-arrow-shape": "triangle",
-          "arrow-scale": 0.5,
+          "arrow-scale": 0.7,
         },
       },
       {
@@ -72,6 +82,27 @@ export default function GraphGenerator({
           "font-size": 5,
         },
       },
+      {
+        selector: "node.semitransp",
+        style: { opacity: 0.5 },
+      },
+      {
+        selector: "node.clicked",
+        style: {
+          "background-color": "orange",
+        },
+      },
+      {
+        selector: "edge.highlight",
+        style: {
+          width: 2,
+          "arrow-scale": 1,
+        },
+      },
+      {
+        selector: "edge.semitransp",
+        style: { opacity: 0.2 },
+      },
     ],
     elements: {
       nodes: graph.nodes.map((node) => ({
@@ -83,6 +114,57 @@ export default function GraphGenerator({
     },
     layout: {
       name: "grid",
+      avoidOverlap: true,
     },
+  });
+
+  cy.on("click", "node", function (e) {
+    const node = e.target;
+
+    if (node.data().type === "module") return;
+
+    const deselect = function (n: any) {
+      cy.elements().removeClass("semitransp");
+      n.removeClass("highlight")
+        .removeClass("clicked")
+        .outgoers()
+        .removeClass("highlight");
+      n.incomers().removeClass("highlight");
+    };
+
+    const select = function (n: any) {
+      const parents = n
+        .ancestors()
+        .toArray()
+        .concat(n.outgoers().ancestors().toArray())
+        .concat(n.incomers().ancestors().toArray());
+
+      cy.elements()
+        .difference(n.outgoers())
+        .difference(n.incomers())
+        .not(n)
+        .addClass("semitransp");
+
+      n.addClass("highlight")
+        .addClass("clicked")
+        .outgoers()
+        .addClass("highlight");
+      n.incomers().addClass("highlight");
+
+      parents.forEach((element: any) => {
+        element.removeClass("semitransp");
+      });
+    };
+
+    const clicked = cy.elements().filter((elem) => elem.hasClass("clicked"));
+
+    if (clicked.size() === 1 && clicked.first() !== node) {
+      deselect(clicked.first());
+      select(node);
+    } else if (node.hasClass("highlight")) {
+      deselect(node);
+    } else {
+      select(node);
+    }
   });
 }
