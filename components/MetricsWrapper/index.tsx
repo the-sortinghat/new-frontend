@@ -6,9 +6,12 @@ type Props = {
   metrics: SystemMetrics;
   dimensions: Dimensions;
   selectedService?: string;
+  selectedModule?: string;
 };
 
-const processMetrics = (metrics: SystemMetrics, dimensions: Dimensions) => {
+const processMetrics = (
+  metrics: SystemMetrics
+): { simpleMetrics: {}; perComponentMetrics: {} } => {
   const { SIZE, DATA_COUPLING, SYNC_COUPLING, ASYNC_COUPLING } = Dimension;
   const metricsByDimension = {
     [SIZE]: metrics["Size"],
@@ -16,40 +19,79 @@ const processMetrics = (metrics: SystemMetrics, dimensions: Dimensions) => {
     [SYNC_COUPLING]: metrics["Synchronous coupling"],
     [ASYNC_COUPLING]: metrics["Asynchronous coupling"],
   };
+  const getNewMetricName = (metricName: string): string => {
+    let newName = metricName;
+    const target = ["a given component", "each component"].find((op) =>
+      metricName.includes(op)
+    );
 
-  return dimensions.reduce(
-    (acc, dim) => ({
-      ...acc,
-      ...Object.keys(metricsByDimension[dim]).reduce((obj, metricName) => {
-        let newName = metricName;
-        const target = ["a given component", "each component"].find((op) =>
-          metricName.includes(op)
-        );
+    if (target) newName = metricName.replaceAll(target, "it");
+    else if (metricName.includes("per component"))
+      newName = metricName.replaceAll("per component", "");
+    return newName;
+  };
 
-        if (target) newName = metricName.replaceAll(target, "it");
-        else if (metricName.includes("per component"))
-          newName = metricName.replaceAll("per component", "");
+  return Object.entries(metricsByDimension).reduce(
+    (acc, [dim, metricsSet]) => {
+      const subResult = Object.entries(metricsSet).reduce(
+        (obj, [metricName, value]) => {
+          const newName = getNewMetricName(metricName);
+          return typeof value === "object"
+            ? {
+                simpleMetrics: { ...obj.simpleMetrics },
+                perComponentMetrics: {
+                  ...obj.perComponentMetrics,
+                  [dim]: {
+                    ...(obj.perComponentMetrics[dim as keyof {}] as {}),
+                    [newName]: value,
+                  },
+                },
+              }
+            : {
+                simpleMetrics: {
+                  ...obj.simpleMetrics,
+                  [newName]: value,
+                },
+                perComponentMetrics: { ...obj.perComponentMetrics },
+              };
+        },
+        { simpleMetrics: {}, perComponentMetrics: {} }
+      );
 
-        return {
-          ...obj,
-          [newName]: metricsByDimension[dim][metricName as keyof {}],
-        };
-      }, {}),
-    }),
-    {}
+      return {
+        simpleMetrics: { ...acc.simpleMetrics, ...subResult.simpleMetrics },
+        perComponentMetrics: {
+          ...acc.perComponentMetrics,
+          ...subResult.perComponentMetrics,
+        },
+      };
+    },
+    { simpleMetrics: {}, perComponentMetrics: {} }
   );
 };
 
-const filterMetrics = (metrics: {}, name: string) => {
-  return Object.keys(metrics).reduce((acc, metric) => {
+const filterMetrics = (
+  metrics: {},
+  name: string,
+  type: string,
+  dimensions: Dimensions
+) => {
+  const filterBySelectedDimensions = Object.keys(metrics).reduce(
+    (acc, dim) =>
+      dimensions.find((d) => d === dim)
+        ? { ...acc, ...(metrics[dim as keyof {}] as {}) }
+        : acc,
+    {}
+  );
+  return Object.keys(filterBySelectedDimensions).reduce((acc, metric) => {
     const componentExists = Object.keys(
-      metrics[metric as keyof {}]["services"]
+      filterBySelectedDimensions[metric as keyof {}][type]
     ).find((key) => key === name);
 
     if (componentExists) {
       return {
         ...acc,
-        [metric]: metrics[metric as keyof {}]["services"][name],
+        [metric]: filterBySelectedDimensions[metric as keyof {}][type][name],
       };
     }
 
@@ -71,35 +113,15 @@ const MetricsWrapper: React.FC<Props> = ({
   metrics,
   dimensions,
   selectedService = "",
+  selectedModule = "",
 }) => {
-  const isAnyDimensionSelected = dimensions.length > 0;
-
-  if (!isAnyDimensionSelected) {
-    return (
-      <div className={styles.metrics}>
-        <h2>Metrics</h2>
-        <p>Select a dimension to see the metrics.</p>
-      </div>
-    );
-  }
-
-  const allMetrics = processMetrics(metrics, dimensions);
-
-  const perComponentMetrics = Object.keys(allMetrics).reduce(
-    (acc, metricName) =>
-      typeof allMetrics[metricName as keyof {}] !== "object"
-        ? acc
-        : { ...acc, [metricName]: allMetrics[metricName as keyof {}] },
-    {}
+  const { simpleMetrics, perComponentMetrics } = processMetrics(metrics);
+  const filteredMetrics = filterMetrics(
+    perComponentMetrics,
+    selectedService,
+    "services",
+    dimensions
   );
-  const simpleMetrics = Object.keys(allMetrics).reduce(
-    (acc, metricName) =>
-      typeof allMetrics[metricName as keyof {}] === "object"
-        ? acc
-        : { ...acc, [metricName]: allMetrics[metricName as keyof {}] },
-    {}
-  );
-  const filteredMetrics = filterMetrics(perComponentMetrics, selectedService);
 
   return (
     <div className={styles.metrics}>
@@ -109,12 +131,23 @@ const MetricsWrapper: React.FC<Props> = ({
       {selectedService !== "" ? (
         <>
           <p className={styles.specificServiceLabel}>
-            Specific metrics of the service {selectedService}:
+            Metrics of the service {selectedService}:
           </p>
           <DisplayMetrics metrics={filteredMetrics} />
+          <p className={styles.specificServiceLabel}>
+            {`Metrics of the ${selectedService}'s module:`}
+          </p>
+          <DisplayMetrics
+            metrics={filterMetrics(
+              perComponentMetrics,
+              selectedModule,
+              "modules",
+              dimensions
+            )}
+          />
         </>
       ) : (
-        <p>Select a service to see more metrics.</p>
+        <p>Select a service to see its metrics.</p>
       )}
     </div>
   );

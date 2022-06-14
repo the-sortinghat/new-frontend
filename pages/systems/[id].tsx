@@ -40,6 +40,12 @@ const VisualizationAndMetricsWrapper: React.FC<{
   metrics: SystemMetrics;
 }> = ({ system, dimensions, metrics }) => {
   const [selectedService, setSelectedService] = useState("");
+  const selectedModule = system.modules.find(
+    (mod) =>
+      mod.id ===
+      system.services.find((s) => s.name === selectedService)?.moduleId
+  )?.name;
+
   return (
     <div className={styles.grid}>
       <div className={styles.view}>
@@ -57,6 +63,7 @@ const VisualizationAndMetricsWrapper: React.FC<{
         metrics={metrics}
         dimensions={dimensions}
         selectedService={selectedService}
+        selectedModule={selectedModule}
       />
     </div>
   );
