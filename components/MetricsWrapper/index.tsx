@@ -126,17 +126,14 @@ const MetricsWrapper: React.FC<Props> = ({
   return (
     <div className={styles.metrics}>
       <h2>Metrics</h2>
+      <h4>Global:</h4>
       <DisplayMetrics metrics={simpleMetrics} />
 
       {selectedService !== "" ? (
         <>
-          <p className={styles.specificServiceLabel}>
-            Metrics of the service {selectedService}:
-          </p>
+          <h4>Metrics of the service {selectedService}:</h4>
           <DisplayMetrics metrics={filteredMetrics} />
-          <p className={styles.specificServiceLabel}>
-            {`Metrics of the ${selectedService}'s module:`}
-          </p>
+          <h4>{`Metrics of the ${selectedService}'s module:`}</h4>
           <DisplayMetrics
             metrics={filterMetrics(
               perComponentMetrics,

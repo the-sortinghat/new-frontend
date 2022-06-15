@@ -9,10 +9,6 @@
   margin-top: 0;
 }
 
-.specificServiceLabel {
-  text-decoration: underline;
-}
-
 @media screen and (max-width: 1000px) {
   .metrics {
     margin-top: 2rem;
