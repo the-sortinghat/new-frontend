@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
-import GraphGenerator from "@/services/graph/generator";
+import CytoscapeComponent from "react-cytoscapejs";
 import { Dimensions } from "@/types/dimensions";
 import { System } from "@/types/system";
+import GraphDataProcessor from "@/services/graph/data_processor";
+import { Core, EdgeDefinition, EventObject, NodeDefinition } from "cytoscape";
 
 type Props = {
   system: System;
@@ -9,26 +11,93 @@ type Props = {
   setSelection: (_: string) => void;
 };
 
+const defocusNodes = (cy: Core, n: any) => {
+  cy.elements()
+    .not(n)
+    .not(n.ancestors())
+    .not(n.outgoers())
+    .not(n.incomers())
+    .removeClass("highlight")
+    .addClass("semitransp");
+};
+
+const deselectGraphNode = (cy: Core, n: any) => {
+  cy.elements().removeClass("semitransp");
+  n.removeClass("highlight")
+    .removeClass("clicked")
+    .outgoers()
+    .removeClass("highlight");
+  n.incomers().removeClass("highlight");
+};
+
+const selectGraphNode = (cy: Core, n: any) => {
+  const parents = n
+    .ancestors()
+    .toArray()
+    .concat(n.outgoers().ancestors().toArray())
+    .concat(n.incomers().ancestors().toArray());
+
+  cy.elements()
+    .difference(n.outgoers())
+    .difference(n.incomers())
+    .not(n)
+    .addClass("semitransp");
+
+  n.addClass("highlight").addClass("clicked").outgoers().addClass("highlight");
+  n.incomers().addClass("highlight");
+
+  parents.forEach((element: any) => {
+    element.removeClass("semitransp");
+  });
+};
+
+const graphClickInteraction = (
+  cy: Core,
+  e: EventObject,
+  setSelection: (_: string) => void
+) => {
+  const node = e.target;
+  const clicked = cy.elements().filter((elem) => elem.hasClass("clicked"));
+
+  if (clicked.size() === 1 && clicked.first().id() !== node.id()) {
+    deselectGraphNode(cy, clicked.first());
+    selectGraphNode(cy, node);
+    setSelection(node.data().label);
+  } else if (node.hasClass("clicked")) {
+    deselectGraphNode(cy, node);
+    setSelection("");
+  } else {
+    selectGraphNode(cy, node);
+    setSelection(node.data().label);
+  }
+};
+
 const Graph: React.FC<Props> = ({ system, dimensions, setSelection }) => {
   const [zoom, setZoom] = useState(0.5);
-  const [selectedService, setSelectedService] = useState("");
+  const graph = GraphDataProcessor.build(system, dimensions);
+  let cyRef: Core | undefined = undefined;
 
   useEffect(() => {
-    GraphGenerator({
-      system,
-      dimensions,
-      container: document.getElementById("graph")!,
-      options: { zoom, setSelectedService },
-    });
-  }, [dimensions, system, zoom]);
+    if (cyRef) {
+      cyRef.on("click", "node[type='service']", (e) => {
+        graphClickInteraction(cyRef!, e, setSelection);
+      });
+    }
+  }, [cyRef, setSelection]);
 
   useEffect(() => {
-    setSelectedService("");
-  }, [dimensions]);
+    if (!cyRef) return;
 
-  useEffect(() => {
-    setSelection(selectedService);
-  }, [selectedService, setSelection]);
+    const clicked = cyRef.elements().filter((elem) => elem.hasClass("clicked"));
+
+    if (clicked.size() !== 1) return;
+
+    const node = clicked.first() as any;
+
+    defocusNodes(cyRef, node);
+    deselectGraphNode(cyRef, node);
+    selectGraphNode(cyRef, node);
+  }, [cyRef, dimensions]);
 
   return (
     <div
@@ -39,7 +108,111 @@ const Graph: React.FC<Props> = ({ system, dimensions, setSelection }) => {
         border: "1px solid #ccc",
       }}
     >
-      <div id="graph" style={{ width: "100%", height: "100%" }}></div>
+      <CytoscapeComponent
+        style={{ width: "100%", height: "100%" }}
+        cy={(cy) => {
+          cyRef = cy;
+        }}
+        minZoom={zoom}
+        userZoomingEnabled={false}
+        boxSelectionEnabled={false}
+        autounselectify={true}
+        elements={[
+          ...graph.nodes.map((node) => ({
+            data: node as unknown as NodeDefinition,
+          })),
+          ...(graph.edges.map((edge) => ({
+            data: edge as unknown,
+          })) as EdgeDefinition[]),
+        ]}
+        layout={{
+          name: "grid",
+          avoidOverlap: true,
+          ready: (_) => {},
+          stop: (_) => {},
+        }}
+        stylesheet={[
+          {
+            selector: "node",
+            style: {
+              content: "data(label)",
+              width: 15,
+              height: 15,
+              "border-width": "1px",
+              "border-color": "black",
+              "font-size": 7,
+              "font-weight": "bold",
+              "text-valign": "bottom",
+              "text-halign": "center",
+              "text-margin-y": 2,
+            },
+          },
+          {
+            selector: "node[type = 'database']",
+            style: {
+              shape: "hexagon",
+              backgroundColor: "red",
+            },
+          },
+          {
+            selector: "node.highlight",
+            style: {
+              backgroundColor: "#6b46c1",
+              opacity: 1,
+            },
+          },
+          {
+            selector: ":parent",
+            style: {
+              label: "",
+              "border-width": "1px",
+            },
+          },
+          {
+            selector: "edge",
+            style: {
+              width: 1,
+              "curve-style": "unbundled-bezier",
+              "target-arrow-shape": "triangle",
+              "arrow-scale": 0.7,
+            },
+          },
+          {
+            selector: "edge[type = 'async']",
+            style: {
+              "line-style": "dashed",
+            },
+          },
+          {
+            selector: "edge[type = 'db']",
+            style: {
+              label: "data(label)",
+              "font-size": 5,
+            },
+          },
+          {
+            selector: "node.semitransp",
+            style: { opacity: 0.5 },
+          },
+          {
+            selector: "node.clicked",
+            style: {
+              "background-color": "orange",
+            },
+          },
+          {
+            selector: "edge.highlight",
+            style: {
+              width: 2,
+              "arrow-scale": 1,
+            },
+          },
+          {
+            selector: "edge.semitransp",
+            style: { opacity: 0.2 },
+          },
+        ]}
+      />
       <div
         className="graphZoomOptions"
         style={{
