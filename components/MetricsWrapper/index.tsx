@@ -5,8 +5,7 @@ import styles from "@/components/MetricsWrapper/styles.module.css";
 type Props = {
   metrics: SystemMetrics;
   dimensions: Dimensions;
-  selectedService?: string;
-  selectedModule?: string;
+  selectedComponent?: any;
 };
 
 const processMetrics = (
@@ -76,6 +75,7 @@ const filterMetrics = (
   type: string,
   dimensions: Dimensions
 ) => {
+  const pluralType = type + "s";
   const filterBySelectedDimensions = Object.keys(metrics).reduce(
     (acc, dim) =>
       dimensions.find((d) => d === dim)
@@ -85,13 +85,14 @@ const filterMetrics = (
   );
   return Object.keys(filterBySelectedDimensions).reduce((acc, metric) => {
     const componentExists = Object.keys(
-      filterBySelectedDimensions[metric as keyof {}][type]
+      filterBySelectedDimensions[metric as keyof {}][pluralType]
     ).find((key) => key === name);
 
     if (componentExists) {
       return {
         ...acc,
-        [metric]: filterBySelectedDimensions[metric as keyof {}][type][name],
+        [metric]:
+          filterBySelectedDimensions[metric as keyof {}][pluralType][name],
       };
     }
 
@@ -112,14 +113,13 @@ const DisplayMetrics: React.FC<{ metrics: {} }> = ({ metrics }) => {
 const MetricsWrapper: React.FC<Props> = ({
   metrics,
   dimensions,
-  selectedService = "",
-  selectedModule = "",
+  selectedComponent,
 }) => {
   const { simpleMetrics, perComponentMetrics } = processMetrics(metrics);
   const filteredMetrics = filterMetrics(
     perComponentMetrics,
-    selectedService,
-    "services",
+    selectedComponent.name,
+    selectedComponent.type,
     dimensions
   );
 
@@ -129,22 +129,15 @@ const MetricsWrapper: React.FC<Props> = ({
       <h4>Global:</h4>
       <DisplayMetrics metrics={simpleMetrics} />
 
-      {selectedService !== "" ? (
+      {selectedComponent.name !== "" ? (
         <>
-          <h4>Metrics of the service {selectedService}:</h4>
+          <h4>
+            Metrics of the {selectedComponent.type} {selectedComponent.name}:
+          </h4>
           <DisplayMetrics metrics={filteredMetrics} />
-          <h4>{`Metrics of the ${selectedService}'s module:`}</h4>
-          <DisplayMetrics
-            metrics={filterMetrics(
-              perComponentMetrics,
-              selectedModule,
-              "modules",
-              dimensions
-            )}
-          />
         </>
       ) : (
-        <p>Select a service to see its metrics.</p>
+        <p>Select a component to see its metrics.</p>
       )}
     </div>
   );

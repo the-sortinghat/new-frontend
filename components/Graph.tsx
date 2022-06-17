@@ -8,53 +8,87 @@ import { Core, EdgeDefinition, EventObject, NodeDefinition } from "cytoscape";
 type Props = {
   system: System;
   dimensions: Dimensions;
-  setSelection: (_: string) => void;
+  setSelection: (_: any) => void;
 };
 
 const defocusNodes = (cy: Core, n: any) => {
-  cy.elements()
-    .not(n)
-    .not(n.ancestors())
-    .not(n.outgoers())
-    .not(n.incomers())
-    .removeClass("highlight")
-    .addClass("semitransp");
+  if (n.data().type === "service") {
+    cy.elements()
+      .not(n)
+      .not(n.ancestors())
+      .not(n.outgoers())
+      .not(n.incomers())
+      .removeClass("highlight")
+      .addClass("semitransp");
+  } else {
+    cy.elements()
+      .not(n)
+      .not(n.children().outgoers().ancestors())
+      .not(n.children().incomers().ancestors())
+      .removeClass("highlight")
+      .addClass("semitransp");
+  }
 };
 
 const deselectGraphNode = (cy: Core, n: any) => {
-  cy.elements().removeClass("semitransp");
-  n.removeClass("highlight")
-    .removeClass("clicked")
-    .outgoers()
-    .removeClass("highlight");
-  n.incomers().removeClass("highlight");
+  if (n.data().type === "service") {
+    cy.elements().removeClass("semitransp");
+    n.removeClass("highlight")
+      .removeClass("clicked")
+      .outgoers()
+      .removeClass("highlight");
+    n.incomers().removeClass("highlight");
+  } else {
+    cy.elements().removeClass("semitransp");
+    n.removeClass("clicked");
+    n.children().outgoers().ancestors().removeClass("highlight");
+    n.children().incomers().ancestors().removeClass("highlight");
+  }
 };
 
 const selectGraphNode = (cy: Core, n: any) => {
-  const parents = n
-    .ancestors()
-    .toArray()
-    .concat(n.outgoers().ancestors().toArray())
-    .concat(n.incomers().ancestors().toArray());
+  if (n.data().type === "service") {
+    const parents = n
+      .ancestors()
+      .toArray()
+      .concat(n.outgoers().ancestors().toArray())
+      .concat(n.incomers().ancestors().toArray());
 
-  cy.elements()
-    .difference(n.outgoers())
-    .difference(n.incomers())
-    .not(n)
-    .addClass("semitransp");
+    cy.elements()
+      .difference(n.outgoers())
+      .difference(n.incomers())
+      .not(n)
+      .addClass("semitransp");
 
-  n.addClass("highlight").addClass("clicked").outgoers().addClass("highlight");
-  n.incomers().addClass("highlight");
+    n.addClass("highlight")
+      .addClass("clicked")
+      .outgoers()
+      .addClass("highlight");
+    n.incomers().addClass("highlight");
 
-  parents.forEach((element: any) => {
-    element.removeClass("semitransp");
-  });
+    parents.forEach((element: any) => {
+      element.removeClass("semitransp");
+    });
+  } else {
+    cy.elements()
+      .difference(n.children().outgoers())
+      .difference(n.children().incomers())
+      .difference(n.children().outgoers().ancestors())
+      .difference(n.children().incomers().ancestors())
+      .not(n)
+      .not(n.children())
+      .addClass("semitransp");
+
+    n.addClass("clicked");
+    n.children().outgoers().ancestors().addClass("highlight");
+    n.children().incomers().ancestors().addClass("highlight");
+  }
 };
 
 const graphClickInteraction = (
   cy: Core,
   e: EventObject,
-  setSelection: (_: string) => void
+  setSelection: (_: any) => void
 ) => {
   const node = e.target;
   const clicked = cy.elements().filter((elem) => elem.hasClass("clicked"));
@@ -62,13 +96,13 @@ const graphClickInteraction = (
   if (clicked.size() === 1 && clicked.first().id() !== node.id()) {
     deselectGraphNode(cy, clicked.first());
     selectGraphNode(cy, node);
-    setSelection(node.data().label);
+    setSelection({ type: node.data().type, name: node.data().label });
   } else if (node.hasClass("clicked")) {
     deselectGraphNode(cy, node);
-    setSelection("");
+    setSelection({ type: "", name: "" });
   } else {
     selectGraphNode(cy, node);
-    setSelection(node.data().label);
+    setSelection({ type: node.data().type, name: node.data().label });
   }
 };
 
@@ -79,7 +113,7 @@ const Graph: React.FC<Props> = ({ system, dimensions, setSelection }) => {
 
   useEffect(() => {
     if (cyRef) {
-      cyRef.on("click", "node[type='service']", (e) => {
+      cyRef.on("click", "node", (e) => {
         graphClickInteraction(cyRef!, e, setSelection);
       });
     }
