@@ -99,7 +99,7 @@ const graphClickInteraction = (
     setSelection({ type: node.data().type, name: node.data().label });
   } else if (node.hasClass("clicked")) {
     deselectGraphNode(cy, node);
-    setSelection({ type: "", name: "" });
+    setSelection({ type: "service", name: "" });
   } else {
     selectGraphNode(cy, node);
     setSelection({ type: node.data().type, name: node.data().label });

@@ -40,7 +40,7 @@ const VisualizationAndMetricsWrapper: React.FC<{
   metrics: SystemMetrics;
 }> = ({ system, dimensions, metrics }) => {
   const [selectedComponent, setSelectedComponent] = useState<any>({
-    type: "",
+    type: "service",
     name: "",
   });
 
