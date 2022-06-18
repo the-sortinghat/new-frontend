@@ -39,10 +39,7 @@ const VisualizationAndMetricsWrapper: React.FC<{
   dimensions: Dimensions;
   metrics: SystemMetrics;
 }> = ({ system, dimensions, metrics }) => {
-  const [selectedComponent, setSelectedComponent] = useState<any>({
-    type: "service",
-    name: "",
-  });
+  const [selectedComponents, setSelectedComponents] = useState<any>([]);
 
   return (
     <div className={styles.grid}>
@@ -50,7 +47,7 @@ const VisualizationAndMetricsWrapper: React.FC<{
         <Graph
           system={system}
           dimensions={dimensions}
-          setSelection={setSelectedComponent}
+          setSelection={setSelectedComponents}
         />
         <div className={styles.imageKey}>
           <ImageKey />
@@ -60,7 +57,7 @@ const VisualizationAndMetricsWrapper: React.FC<{
       <MetricsWrapper
         metrics={metrics}
         dimensions={dimensions}
-        selectedComponent={selectedComponent}
+        selectedComponents={selectedComponents}
       />
     </div>
   );

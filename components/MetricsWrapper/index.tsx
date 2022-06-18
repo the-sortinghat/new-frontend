@@ -5,7 +5,7 @@ import styles from "@/components/MetricsWrapper/styles.module.css";
 type Props = {
   metrics: SystemMetrics;
   dimensions: Dimensions;
-  selectedComponent?: any;
+  selectedComponents?: any;
 };
 
 const processMetrics = (
@@ -113,29 +113,33 @@ const DisplayMetrics: React.FC<{ metrics: {} }> = ({ metrics }) => {
 const MetricsWrapper: React.FC<Props> = ({
   metrics,
   dimensions,
-  selectedComponent,
+  selectedComponents,
 }) => {
   const { simpleMetrics, perComponentMetrics } = processMetrics(metrics);
-  const filteredMetrics = filterMetrics(
-    perComponentMetrics,
-    selectedComponent.name,
-    selectedComponent.type,
-    dimensions
-  );
-
   return (
     <div className={styles.metrics}>
       <h2>Metrics</h2>
       <h4>Global:</h4>
       <DisplayMetrics metrics={simpleMetrics} />
 
-      {selectedComponent.name !== "" ? (
-        <>
-          <h4>
-            Metrics of the {selectedComponent.type} {selectedComponent.name}:
-          </h4>
-          <DisplayMetrics metrics={filteredMetrics} />
-        </>
+      {selectedComponents.length > 0 ? (
+        selectedComponents.map(
+          ({ type, name }: { type: string; name: string }) => (
+            <div key={`${type}+${name}`}>
+              <h4>
+                Metrics of the {type} {name}:
+              </h4>
+              <DisplayMetrics
+                metrics={filterMetrics(
+                  perComponentMetrics,
+                  name,
+                  type,
+                  dimensions
+                )}
+              />
+            </div>
+          )
+        )
       ) : (
         <p>Select a component to see its metrics.</p>
       )}

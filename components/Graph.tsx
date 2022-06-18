@@ -32,12 +32,36 @@ const defocusNodes = (cy: Core, n: any) => {
 
 const deselectGraphNode = (cy: Core, n: any) => {
   if (n.data().type === "service") {
-    cy.elements().removeClass("semitransp");
-    n.removeClass("highlight")
-      .removeClass("clicked")
-      .outgoers()
-      .removeClass("highlight");
-    n.incomers().removeClass("highlight");
+    cy.elements().removeClass("highlight").removeClass("semitransp");
+    n.removeClass("clicked");
+
+    const clickedElems = cy
+      .elements()
+      .filter((elem) => elem.hasClass("clicked"));
+
+    if (clickedElems.size() === 0) {
+      cy.elements().removeClass("semitransp");
+      return;
+    }
+
+    clickedElems.outgoers().addClass("highlight");
+    clickedElems.incomers().addClass("highlight");
+
+    const parents = clickedElems
+      .ancestors()
+      .toArray()
+      .concat(clickedElems.outgoers().ancestors().toArray())
+      .concat(clickedElems.incomers().ancestors().toArray());
+
+    cy.elements()
+      .filter(
+        (elem) => !elem.hasClass("clicked") && !elem.hasClass("highlight")
+      )
+      .addClass("semitransp");
+
+    parents.forEach((element: any) => {
+      element.removeClass("semitransp");
+    });
   } else {
     cy.elements().removeClass("semitransp");
     n.removeClass("clicked");
@@ -60,15 +84,20 @@ const selectGraphNode = (cy: Core, n: any) => {
       .not(n)
       .addClass("semitransp");
 
-    n.addClass("highlight")
-      .addClass("clicked")
-      .outgoers()
-      .addClass("highlight");
+    n.addClass("clicked");
+    n.outgoers().addClass("highlight");
     n.incomers().addClass("highlight");
 
     parents.forEach((element: any) => {
       element.removeClass("semitransp");
     });
+
+    // remove semi transparency from nodes already selected / highlighted
+    cy.elements()
+      .filter((elem) => elem.hasClass("clicked") || elem.hasClass("highlight"))
+      .removeClass("semitransp")
+      .ancestors()
+      .removeClass("semitransp");
   } else {
     cy.elements()
       .difference(n.children().outgoers())
@@ -91,19 +120,45 @@ const graphClickInteraction = (
   setSelection: (_: any) => void
 ) => {
   const node = e.target;
-  const clicked = cy.elements().filter((elem) => elem.hasClass("clicked"));
 
-  if (clicked.size() === 1 && clicked.first().id() !== node.id()) {
-    deselectGraphNode(cy, clicked.first());
-    selectGraphNode(cy, node);
-    setSelection({ type: node.data().type, name: node.data().label });
-  } else if (node.hasClass("clicked")) {
-    deselectGraphNode(cy, node);
-    setSelection({ type: "service", name: "" });
+  if (node.data().type === "module") {
+    cy.elements()
+      .filter(
+        (elem) => elem.hasClass("clicked") && elem.data().type !== "module"
+      )
+      .forEach((elem) => deselectGraphNode(cy, elem));
   } else {
-    selectGraphNode(cy, node);
-    setSelection({ type: node.data().type, name: node.data().label });
+    const hasModuleSelected =
+      cy
+        .elements()
+        .filter(
+          (elem) => elem.hasClass("clicked") && elem.data().type === "module"
+        )
+        .size() > 0;
+    if (hasModuleSelected) {
+      cy.elements()
+        .removeClass("highlight")
+        .removeClass("clicked")
+        .removeClass("semitransp");
+    }
   }
+
+  node.hasClass("clicked")
+    ? deselectGraphNode(cy, node)
+    : selectGraphNode(cy, node);
+
+  setSelection(
+    cy
+      .elements()
+      .filter((elem) => elem.hasClass("clicked"))
+      .reduce(
+        (acc, elem) => [
+          ...acc,
+          { type: elem.data().type, name: elem.data().label },
+        ],
+        [] as { type: string; name: string }[]
+      )
+  );
 };
 
 const Graph: React.FC<Props> = ({ system, dimensions, setSelection }) => {
@@ -122,15 +177,14 @@ const Graph: React.FC<Props> = ({ system, dimensions, setSelection }) => {
   useEffect(() => {
     if (!cyRef) return;
 
-    const clicked = cyRef.elements().filter((elem) => elem.hasClass("clicked"));
-
-    if (clicked.size() !== 1) return;
-
-    const node = clicked.first() as any;
-
-    defocusNodes(cyRef, node);
-    deselectGraphNode(cyRef, node);
-    selectGraphNode(cyRef, node);
+    cyRef
+      .elements()
+      .filter((elem) => elem.hasClass("clicked"))
+      .forEach((node) => {
+        defocusNodes(cyRef!, node);
+        deselectGraphNode(cyRef!, node);
+        selectGraphNode(cyRef!, node);
+      });
   }, [cyRef, dimensions]);
 
   return (
