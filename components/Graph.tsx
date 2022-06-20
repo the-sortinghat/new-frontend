@@ -122,11 +122,15 @@ const graphClickInteraction = (
   const node = e.target;
 
   if (node.data().type === "module") {
-    cy.elements()
-      .filter(
-        (elem) => elem.hasClass("clicked") && elem.data().type !== "module"
-      )
-      .forEach((elem) => deselectGraphNode(cy, elem));
+    if (node.hasClass("clicked")) {
+      deselectGraphNode(cy, node);
+    } else {
+      cy.elements()
+        .filter((elem) => elem.hasClass("clicked"))
+        .forEach((elem) => deselectGraphNode(cy, elem));
+
+      selectGraphNode(cy, node);
+    }
   } else {
     const hasModuleSelected =
       cy
@@ -141,11 +145,11 @@ const graphClickInteraction = (
         .removeClass("clicked")
         .removeClass("semitransp");
     }
-  }
 
-  node.hasClass("clicked")
-    ? deselectGraphNode(cy, node)
-    : selectGraphNode(cy, node);
+    node.hasClass("clicked")
+      ? deselectGraphNode(cy, node)
+      : selectGraphNode(cy, node);
+  }
 
   setSelection(
     cy
