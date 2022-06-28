@@ -35,7 +35,8 @@ const processMetrics = (
       const subResult = Object.entries(metricsSet).reduce(
         (obj, [metricName, value]) => {
           const newName = getNewMetricName(metricName);
-          return typeof value === "object"
+          return typeof value === "object" &&
+            Object.values(value).every((val) => typeof val === "object")
             ? {
                 simpleMetrics: { ...obj.simpleMetrics },
                 perComponentMetrics: {
@@ -103,9 +104,22 @@ const filterMetrics = (
 const DisplayMetrics: React.FC<{ metrics: {} }> = ({ metrics }) => {
   return (
     <>
-      {Object.entries(metrics).map(([metric, value]) => (
-        <p key={metric}>{`${metric}: ${value}`}</p>
-      ))}
+      {Object.entries(metrics).map(([metric, value]) => {
+        if (typeof value === "object") {
+          return (
+            <div key={metric}>
+              <p>{`${metric}:`}</p>
+              <ul key="metric">
+                {Object.entries(value as {}).map(([key, val]) => (
+                  <li key={key}>{`${key}: ${val}`}</li>
+                ))}
+              </ul>
+            </div>
+          );
+        }
+
+        return <p key={metric}>{`${metric}: ${value}`}</p>;
+      })}
     </>
   );
 };
