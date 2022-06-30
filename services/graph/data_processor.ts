@@ -1,5 +1,5 @@
 import { Dimension, Dimensions } from "@/types/dimensions";
-import { Node, Edge, Graph } from "@/types/graph";
+import { Edge, Graph, Node } from "@/types/graph";
 import { DatabaseAccessType, Operation, System } from "@/types/system";
 
 export default class GraphDataProcessor {
@@ -9,11 +9,12 @@ export default class GraphDataProcessor {
   private constructor(private readonly system: System) {
     this.nodes = this.nodes
       .concat(
-        system.services.map(({ id, name, moduleId }) => ({
+        system.services.map(({ id, name, moduleId, operations }) => ({
           id: `s${id}`,
           label: name,
           type: "service",
           parent: `m${moduleId}`,
+          operations: operations,
         }))
       )
       .concat(
@@ -76,11 +77,12 @@ export default class GraphDataProcessor {
   private syncCouplingDimension(): GraphDataProcessor {
     this.edges = this.edges.concat(
       this.system.syncOperations.map(
-        ({ from, to }: Operation): Edge => ({
+        ({ from, to, label }: Operation): Edge => ({
           id: `sync-s${from}/s${to}`,
           source: `s${from}`,
           target: `s${to}`,
           type: "sync",
+          label,
         })
       )
     );
@@ -91,11 +93,12 @@ export default class GraphDataProcessor {
   private asyncCouplingDimension(): GraphDataProcessor {
     this.edges = this.edges.concat(
       this.system.asyncOperations.map(
-        ({ from, to }: Operation): Edge => ({
+        ({ from, to, label }: Operation): Edge => ({
           id: `async-s${from}/s${to}`,
           source: `s${from}`,
           target: `s${to}`,
           type: "async",
+          label,
         })
       )
     );

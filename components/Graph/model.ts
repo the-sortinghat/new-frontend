@@ -67,6 +67,7 @@ const graphModel = {
         "curve-style": "unbundled-bezier",
         "target-arrow-shape": "triangle",
         "arrow-scale": 0.7,
+        "font-size": 10,
       },
     },
     {
@@ -79,7 +80,6 @@ const graphModel = {
       selector: "edge[type = 'db']",
       style: {
         label: "data(label)",
-        "font-size": 5,
       },
     },
     {

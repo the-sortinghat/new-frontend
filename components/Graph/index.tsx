@@ -20,6 +20,16 @@ const Graph: React.FC<Props> = ({ system, dimensions, setSelection }) => {
       cyRef.on("click", "node", (e) => {
         graphModel.click(cyRef!, e, setSelection);
       });
+      cyRef.on("mouseover", "edge[type!='db']", (e) => {
+        const edge = e.target;
+
+        if (!edge.hasClass("semitransp"))
+          edge.style("label", edge.data().label);
+      });
+      cyRef.on("mouseout", "edge", (e) => {
+        const edge = e.target;
+        edge.style("label", "");
+      });
     }
   }, [cyRef, setSelection]);
 
