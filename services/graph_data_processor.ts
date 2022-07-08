@@ -1,6 +1,10 @@
-import { Dimension, Dimensions } from "@/types/dimensions";
 import { Edge, Graph, Node } from "@/types/graph";
-import { DatabaseAccessType, Operation, System } from "@/types/system";
+import {
+  DatabaseAccessType,
+  Dimension,
+  Operation,
+  System,
+} from "@/types/system";
 
 export default class GraphDataProcessor {
   private nodes: Node[] = [];
@@ -24,16 +28,6 @@ export default class GraphDataProcessor {
           type: "module",
         }))
       );
-  }
-
-  private sizeDimension(): GraphDataProcessor {
-    this.nodes.forEach((node) => {
-      node.operations = this.system.services.find(
-        (s) => s.id === node.id
-      )?.operations;
-    });
-
-    return this;
   }
 
   private dataCouplingDimension(): GraphDataProcessor {
@@ -106,20 +100,17 @@ export default class GraphDataProcessor {
     return this;
   }
 
-  public static build(system: System, dimensions: Dimensions): Graph {
+  public static build(system: System, dimensions: Dimension[]): Graph {
     let processor = new GraphDataProcessor(system);
-    const { SIZE, DATA_COUPLING, SYNC_COUPLING, ASYNC_COUPLING } = Dimension;
     const buildOptions = {
-      [SIZE]() {
-        processor = processor.sizeDimension();
-      },
-      [DATA_COUPLING]() {
+      [Dimension.SIZE]() {},
+      [Dimension.DATA_COUPLING]() {
         processor = processor.dataCouplingDimension();
       },
-      [SYNC_COUPLING]() {
+      [Dimension.SYNC_COUPLING]() {
         processor = processor.syncCouplingDimension();
       },
-      [ASYNC_COUPLING]() {
+      [Dimension.ASYNC_COUPLING]() {
         processor = processor.asyncCouplingDimension();
       },
     };

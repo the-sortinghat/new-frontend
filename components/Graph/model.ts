@@ -1,257 +1,187 @@
-import GraphDataProcessor from "@/services/graph/data_processor";
-import { Dimensions } from "@/types/dimensions";
-import { System } from "@/types/system";
-import cytoscape, {
+import {
   Core,
   EdgeDefinition,
+  ElementDefinition,
   EventObject,
   NodeDefinition,
 } from "cytoscape";
+import GraphDataProcessor from "@/services/graph_data_processor";
+import { makeLayout, stylesheet } from "@/components/Graph/graph_styles";
+import { Dimension, System } from "@/types/system";
 
-const graphModel = {
-  elements(
-    system: System,
-    dimensions: Dimensions
-  ): cytoscape.ElementDefinition[] {
-    const graph = GraphDataProcessor.build(system, dimensions);
-    return [
-      ...graph.nodes.map((node) => ({
-        data: node as unknown as NodeDefinition,
-      })),
-      ...(graph.edges.map((edge) => ({
-        data: edge as unknown,
-      })) as EdgeDefinition[]),
-    ];
-  },
-  stylesheet: [
-    {
-      selector: "node",
-      style: {
-        content: "data(label)",
-        width: 15,
-        height: 15,
-        "border-width": "1px",
-        "border-color": "black",
-        "font-size": 7,
-        "font-weight": "bold",
-        "text-valign": "bottom",
-        "text-halign": "center",
-        "text-margin-y": 2,
-      },
-    },
-    {
-      selector: "node[type = 'database']",
-      style: {
-        shape: "hexagon",
-        backgroundColor: "green",
-      },
-    },
-    {
-      selector: "node.highlight",
-      style: {
-        backgroundColor: "#6b46c1",
-        opacity: 1,
-      },
-    },
-    {
-      selector: ":parent",
-      style: {
-        label: "",
-        "border-width": "1px",
-      },
-    },
-    {
-      selector: "edge",
-      style: {
-        width: 1,
-        "curve-style": "unbundled-bezier",
-        "target-arrow-shape": "triangle",
-        "arrow-scale": 0.7,
-        "font-size": 10,
-      },
-    },
-    {
-      selector: "edge[type = 'async']",
-      style: {
-        "line-style": "dashed",
-      },
-    },
-    {
-      selector: "edge[type = 'db']",
-      style: {
-        label: "data(label)",
-      },
-    },
-    {
-      selector: "node.semitransp",
-      style: { opacity: 0.5 },
-    },
-    {
-      selector: "node.clicked",
-      style: {
-        "background-color": "orange",
-      },
-    },
-    {
-      selector: "edge.highlight",
-      style: {
-        width: 2,
-        "arrow-scale": 1,
-      },
-    },
-    {
-      selector: "edge.semitransp",
-      style: { opacity: 0.2 },
-    },
-  ] as cytoscape.Stylesheet[],
-  click(cy: Core, e: EventObject, setSelection: (_: any) => void) {
-    const node = e.target;
+function getElements(
+  system: System,
+  dimensions: Dimension[]
+): ElementDefinition[] {
+  const graph = GraphDataProcessor.build(system, dimensions);
+  return [
+    ...graph.nodes.map((node) => ({
+      data: node as unknown as NodeDefinition,
+    })),
+    ...(graph.edges.map((edge) => ({
+      data: edge as unknown,
+    })) as EdgeDefinition[]),
+  ];
+}
 
-    if (node.data().type === "module") {
-      if (node.hasClass("clicked")) {
-        graphModel.deselectGraphNode(cy, node);
-      } else {
-        cy.elements()
-          .filter((elem) => elem.hasClass("clicked"))
-          .forEach((elem) => graphModel.deselectGraphNode(cy, elem));
+function handleClick(cy: Core, e: EventObject, setSelection: (_: any) => void) {
+  const node = e.target;
 
-        graphModel.selectGraphNode(cy, node);
-      }
+  if (node.data().type === "module") {
+    if (node.hasClass("clicked")) {
+      deselectGraphNode(cy, node);
     } else {
-      const hasModuleSelected =
-        cy
-          .elements()
-          .filter(
-            (elem) => elem.hasClass("clicked") && elem.data().type === "module"
-          )
-          .size() > 0;
-      if (hasModuleSelected) {
-        cy.elements()
-          .removeClass("highlight")
-          .removeClass("clicked")
-          .removeClass("semitransp");
-      }
+      cy.elements()
+        .filter((elem) => elem.hasClass("clicked"))
+        .forEach((elem) => deselectGraphNode(cy, elem));
 
-      node.hasClass("clicked")
-        ? graphModel.deselectGraphNode(cy, node)
-        : graphModel.selectGraphNode(cy, node);
+      selectGraphNode(cy, node);
     }
-
-    setSelection(
+  } else {
+    const hasModuleSelected =
       cy
         .elements()
-        .filter((elem) => elem.hasClass("clicked"))
-        .reduce(
-          (acc, elem) => [
-            ...acc,
-            { type: elem.data().type, name: elem.data().label },
-          ],
-          [] as { type: string; name: string }[]
-        )
-    );
-  },
-  selectGraphNode(cy: Core, n: any) {
-    if (n.data().type === "service") {
-      const parents = n
-        .ancestors()
-        .toArray()
-        .concat(n.outgoers().ancestors().toArray())
-        .concat(n.incomers().ancestors().toArray());
-
-      cy.elements()
-        .difference(n.outgoers())
-        .difference(n.incomers())
-        .not(n)
-        .addClass("semitransp");
-
-      n.addClass("clicked");
-      n.outgoers().addClass("highlight");
-      n.incomers().addClass("highlight");
-
-      parents.forEach((element: any) => {
-        element.removeClass("semitransp");
-      });
-
-      // remove semi transparency from nodes already selected / highlighted
-      cy.elements()
         .filter(
-          (elem) => elem.hasClass("clicked") || elem.hasClass("highlight")
+          (elem) => elem.hasClass("clicked") && elem.data().type === "module"
         )
-        .removeClass("semitransp")
-        .ancestors()
+        .size() > 0;
+    if (hasModuleSelected) {
+      cy.elements()
+        .removeClass("highlight")
+        .removeClass("clicked")
         .removeClass("semitransp");
-    } else {
-      cy.elements()
-        .difference(n.children().outgoers())
-        .difference(n.children().incomers())
-        .difference(n.children().outgoers().ancestors())
-        .difference(n.children().incomers().ancestors())
-        .not(n)
-        .not(n.children())
-        .addClass("semitransp");
-
-      n.addClass("clicked");
-      n.children().outgoers().ancestors().addClass("highlight");
-      n.children().incomers().ancestors().addClass("highlight");
     }
-  },
-  deselectGraphNode(cy: Core, n: any) {
-    if (n.data().type === "service") {
-      cy.elements().removeClass("highlight").removeClass("semitransp");
-      n.removeClass("clicked");
 
-      const clickedElems = cy
-        .elements()
-        .filter((elem) => elem.hasClass("clicked"));
+    node.hasClass("clicked")
+      ? deselectGraphNode(cy, node)
+      : selectGraphNode(cy, node);
+  }
 
-      if (clickedElems.size() === 0) {
-        cy.elements().removeClass("semitransp");
-        return;
-      }
+  setSelection(
+    cy
+      .elements()
+      .filter((elem) => elem.hasClass("clicked"))
+      .reduce(
+        (acc, elem) => [
+          ...acc,
+          { type: elem.data().type, name: elem.data().label },
+        ],
+        [] as { type: string; name: string }[]
+      )
+  );
+}
 
-      clickedElems.outgoers().addClass("highlight");
-      clickedElems.incomers().addClass("highlight");
+function selectGraphNode(cy: Core, n: any) {
+  if (n.data().type === "service") {
+    const parents = n
+      .ancestors()
+      .toArray()
+      .concat(n.outgoers().ancestors().toArray())
+      .concat(n.incomers().ancestors().toArray());
 
-      const parents = clickedElems
-        .ancestors()
-        .toArray()
-        .concat(clickedElems.outgoers().ancestors().toArray())
-        .concat(clickedElems.incomers().ancestors().toArray());
+    cy.elements()
+      .difference(n.outgoers())
+      .difference(n.incomers())
+      .not(n)
+      .addClass("semitransp");
 
-      cy.elements()
-        .filter(
-          (elem) => !elem.hasClass("clicked") && !elem.hasClass("highlight")
-        )
-        .addClass("semitransp");
+    n.addClass("clicked");
+    n.outgoers().addClass("highlight");
+    n.incomers().addClass("highlight");
 
-      parents.forEach((element: any) => {
-        element.removeClass("semitransp");
-      });
-    } else {
+    parents.forEach((element: any) => {
+      element.removeClass("semitransp");
+    });
+
+    // remove semi transparency from nodes already selected / highlighted
+    cy.elements()
+      .filter((elem) => elem.hasClass("clicked") || elem.hasClass("highlight"))
+      .removeClass("semitransp")
+      .ancestors()
+      .removeClass("semitransp");
+  } else {
+    cy.elements()
+      .difference(n.children().outgoers())
+      .difference(n.children().incomers())
+      .difference(n.children().outgoers().ancestors())
+      .difference(n.children().incomers().ancestors())
+      .not(n)
+      .not(n.children())
+      .addClass("semitransp");
+
+    n.addClass("clicked");
+    n.children().outgoers().ancestors().addClass("highlight");
+    n.children().incomers().ancestors().addClass("highlight");
+  }
+}
+
+function deselectGraphNode(cy: Core, n: any) {
+  if (n.data().type === "service") {
+    cy.elements().removeClass("highlight").removeClass("semitransp");
+    n.removeClass("clicked");
+
+    const clickedElems = cy
+      .elements()
+      .filter((elem) => elem.hasClass("clicked"));
+
+    if (clickedElems.size() === 0) {
       cy.elements().removeClass("semitransp");
-      n.removeClass("clicked");
-      n.children().outgoers().ancestors().removeClass("highlight");
-      n.children().incomers().ancestors().removeClass("highlight");
+      return;
     }
-  },
-  defocusNodes(cy: Core, n: any) {
-    if (n.data().type === "service") {
-      cy.elements()
-        .not(n)
-        .not(n.ancestors())
-        .not(n.outgoers())
-        .not(n.incomers())
-        .removeClass("highlight")
-        .addClass("semitransp");
-    } else {
-      cy.elements()
-        .not(n)
-        .not(n.children().outgoers().ancestors())
-        .not(n.children().incomers().ancestors())
-        .removeClass("highlight")
-        .addClass("semitransp");
-    }
-  },
+
+    clickedElems.outgoers().addClass("highlight");
+    clickedElems.incomers().addClass("highlight");
+
+    const parents = clickedElems
+      .ancestors()
+      .toArray()
+      .concat(clickedElems.outgoers().ancestors().toArray())
+      .concat(clickedElems.incomers().ancestors().toArray());
+
+    cy.elements()
+      .filter(
+        (elem) => !elem.hasClass("clicked") && !elem.hasClass("highlight")
+      )
+      .addClass("semitransp");
+
+    parents.forEach((element: any) => {
+      element.removeClass("semitransp");
+    });
+  } else {
+    cy.elements().removeClass("semitransp");
+    n.removeClass("clicked");
+    n.children().outgoers().ancestors().removeClass("highlight");
+    n.children().incomers().ancestors().removeClass("highlight");
+  }
+}
+
+function defocusNodes(cy: Core, n: any) {
+  if (n.data().type === "service") {
+    cy.elements()
+      .not(n)
+      .not(n.ancestors())
+      .not(n.outgoers())
+      .not(n.incomers())
+      .removeClass("highlight")
+      .addClass("semitransp");
+  } else {
+    cy.elements()
+      .not(n)
+      .not(n.children().outgoers().ancestors())
+      .not(n.children().incomers().ancestors())
+      .removeClass("highlight")
+      .addClass("semitransp");
+  }
+}
+
+const graphModel = {
+  getElements,
+  makeLayout,
+  stylesheet,
+  handleClick,
+  selectGraphNode,
+  deselectGraphNode,
+  defocusNodes,
 };
 
 export default graphModel;

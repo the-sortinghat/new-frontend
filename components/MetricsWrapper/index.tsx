@@ -1,99 +1,87 @@
-import { Dimension, Dimensions } from "@/types/dimensions";
 import { SystemMetrics } from "@/types/system";
 import styles from "@/components/MetricsWrapper/styles.module.css";
 
 type Props = {
   metrics: SystemMetrics;
-  dimensions: Dimensions;
   selectedComponents?: any;
 };
 
-const processMetrics = (
-  metrics: SystemMetrics
-): { simpleMetrics: {}; perComponentMetrics: {} } => {
-  const { SIZE, DATA_COUPLING, SYNC_COUPLING, ASYNC_COUPLING } = Dimension;
-  const metricsByDimension = {
-    [SIZE]: metrics["Size"],
-    [DATA_COUPLING]: metrics["Data source coupling"],
-    [SYNC_COUPLING]: metrics["Synchronous coupling"],
-    [ASYNC_COUPLING]: metrics["Asynchronous coupling"],
-  };
-  const getNewMetricName = (metricName: string): string => {
-    let newName = metricName;
-    const target = ["a given component", "each component"].find((op) =>
-      metricName.includes(op)
-    );
-
-    if (target) newName = metricName.replaceAll(target, "it");
-    else if (metricName.includes("per component"))
-      newName = metricName.replaceAll("per component", "");
-    return newName;
-  };
-
-  return Object.entries(metricsByDimension).reduce(
-    (acc, [dim, metricsSet]) => {
-      const subResult = Object.entries(metricsSet).reduce(
-        (obj, [metricName, value]) => {
-          const newName = getNewMetricName(metricName);
-          return typeof value === "object" &&
-            Object.values(value).every((val) => typeof val === "object")
-            ? {
-                simpleMetrics: { ...obj.simpleMetrics },
-                perComponentMetrics: {
-                  ...obj.perComponentMetrics,
-                  [dim]: {
-                    ...(obj.perComponentMetrics[dim as keyof {}] as {}),
-                    [newName]: value,
-                  },
-                },
-              }
-            : {
-                simpleMetrics: {
-                  ...obj.simpleMetrics,
-                  [newName]: value,
-                },
-                perComponentMetrics: { ...obj.perComponentMetrics },
-              };
-        },
-        { simpleMetrics: {}, perComponentMetrics: {} }
-      );
-
-      return {
-        simpleMetrics: { ...acc.simpleMetrics, ...subResult.simpleMetrics },
-        perComponentMetrics: {
-          ...acc.perComponentMetrics,
-          ...subResult.perComponentMetrics,
-        },
-      };
-    },
-    { simpleMetrics: {}, perComponentMetrics: {} }
-  );
+type SplitMetricsReturn = {
+  globals: { [key: string]: string };
+  specifics: { [key: string]: {} };
 };
 
-const filterMetrics = (
-  metrics: {},
-  name: string,
-  type: string,
-  dimensions: Dimensions
-) => {
-  const pluralType = type + "s";
-  const filterBySelectedDimensions = Object.keys(metrics).reduce(
-    (acc, dim) =>
-      dimensions.find((d) => d === dim)
-        ? { ...acc, ...(metrics[dim as keyof {}] as {}) }
-        : acc,
-    {}
+type DisplayMetricsProps = {
+  metrics: { [key: string]: any };
+};
+
+type FilterMetricsParams = {
+  metrics: { [key: string]: any };
+  name: string;
+  type: string;
+};
+
+type SelectedComponent = {
+  type: string;
+  name: string;
+};
+
+const changeMetricName = (metricName: string): string => {
+  let newName = metricName;
+  const target = ["a given component", "each component"].find((op) =>
+    metricName.includes(op)
   );
-  return Object.keys(filterBySelectedDimensions).reduce((acc, metric) => {
-    const componentExists = Object.keys(
-      filterBySelectedDimensions[metric as keyof {}][pluralType]
-    ).find((key) => key === name);
+
+  if (target) newName = metricName.replaceAll(target, "it");
+  else if (metricName.includes("per component"))
+    newName = metricName.replaceAll("per component", "");
+
+  return newName;
+};
+
+const splitMetricsIntoGlobalsAndSpecifics = (
+  metrics: SystemMetrics
+): SplitMetricsReturn => {
+  const metricsByDimension = [
+    metrics["Size"],
+    metrics["Data source coupling"],
+    metrics["Synchronous coupling"],
+    metrics["Asynchronous coupling"],
+  ];
+
+  const globals: { [key: string]: any } = {};
+  const specifics: { [key: string]: any } = {};
+
+  metricsByDimension.forEach((metricsSet) => {
+    Object.entries(metricsSet).forEach(([name, value]) => {
+      const newName = changeMetricName(name);
+      const isSpecific =
+        typeof value === "object" &&
+        Object.values(value).every((val) => typeof val === "object");
+
+      if (isSpecific) {
+        specifics[newName] = value;
+      } else {
+        globals[newName] = value;
+      }
+    });
+  });
+
+  return { globals, specifics };
+};
+
+const getComponentMetrics = ({ metrics, name, type }: FilterMetricsParams) => {
+  const pluralType = type + "s";
+
+  return Object.keys(metrics).reduce((acc, metric) => {
+    const componentExists = Object.keys(metrics[metric][pluralType]).find(
+      (key) => key === name
+    );
 
     if (componentExists) {
       return {
         ...acc,
-        [metric]:
-          filterBySelectedDimensions[metric as keyof {}][pluralType][name],
+        [metric]: metrics[metric][pluralType][name],
       };
     }
 
@@ -101,15 +89,15 @@ const filterMetrics = (
   }, {});
 };
 
-const DisplayMetrics: React.FC<{ metrics: {} }> = ({ metrics }) => {
+const DisplayMetrics = ({ metrics }: DisplayMetricsProps) => {
   return (
     <>
       {Object.entries(metrics).map(([metric, value]) => {
         if (typeof value === "object") {
           return (
             <div key={metric}>
-              <p>{`${metric}:`}</p>
-              <ul key="metric">
+              <p>{metric}:</p>
+              <ul key={metric}>
                 {Object.entries(value as {}).map(([key, val]) => (
                   <li key={key}>{`${key}: ${val}`}</li>
                 ))}
@@ -118,42 +106,40 @@ const DisplayMetrics: React.FC<{ metrics: {} }> = ({ metrics }) => {
           );
         }
 
-        return <p key={metric}>{`${metric}: ${value}`}</p>;
+        return (
+          <p key={metric}>
+            {metric}: {value}
+          </p>
+        );
       })}
     </>
   );
 };
 
-const MetricsWrapper: React.FC<Props> = ({
-  metrics,
-  dimensions,
-  selectedComponents,
-}) => {
-  const { simpleMetrics, perComponentMetrics } = processMetrics(metrics);
+const MetricsWrapper = ({ metrics, selectedComponents }: Props) => {
+  const { globals, specifics } = splitMetricsIntoGlobalsAndSpecifics(metrics);
+
   return (
     <div className={styles.metrics}>
       <h2>Metrics</h2>
       <h4>Global:</h4>
-      <DisplayMetrics metrics={simpleMetrics} />
+      <DisplayMetrics metrics={globals} />
 
       {selectedComponents.length > 0 ? (
-        selectedComponents.map(
-          ({ type, name }: { type: string; name: string }) => (
-            <div key={`${type}+${name}`}>
-              <h4>
-                Metrics of the {type} {name}:
-              </h4>
-              <DisplayMetrics
-                metrics={filterMetrics(
-                  perComponentMetrics,
-                  name,
-                  type,
-                  dimensions
-                )}
-              />
-            </div>
-          )
-        )
+        selectedComponents.map(({ type, name }: SelectedComponent) => (
+          <div key={`${type}+${name}`}>
+            <h4>
+              Metrics of the {type} {name}:
+            </h4>
+            <DisplayMetrics
+              metrics={getComponentMetrics({
+                metrics: specifics,
+                name,
+                type,
+              })}
+            />
+          </div>
+        ))
       ) : (
         <p>Select a component to see its metrics.</p>
       )}

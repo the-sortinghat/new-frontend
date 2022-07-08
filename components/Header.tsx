@@ -5,10 +5,10 @@ type Props = {
   description?: string;
 };
 
-const Header: React.FC<Props> = ({
+const Header = ({
   title,
   description = "A tool to characterize the architecture of service-based systems",
-}) => {
+}: Props) => {
   return (
     <Head>
       <title>{title}</title>

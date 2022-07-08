@@ -1,24 +1,30 @@
-import Header from "@/components/Header";
+import { useEffect, useState } from "react";
 import type { NextPage } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import styles from "@/styles/Home.module.css";
+import Header from "@/components/Header";
 import { System } from "@/types/system";
-import { getAllSystems } from "@/services/system_data";
+import { getAllSystems } from "@/services/system_service";
+import styles from "@/styles/Home.module.css";
 
-const SearchInput: React.FC<{
+type SearchInputProps = {
   systems: System[];
   onSearch: (systems: System[]) => void;
-}> = ({ systems, onSearch }) => {
+};
+
+type SystemsListProps = {
+  systems: System[];
+};
+
+const SearchInput = ({ systems, onSearch }: SearchInputProps) => {
   const searchSystem = (query: string) => {
-    onSearch(
-      systems.filter(
-        ({ name, description }) =>
-          name.toLocaleLowerCase().includes(query.toLocaleLowerCase()) ||
-          description.toLocaleLowerCase().includes(query.toLocaleLowerCase())
-      )
+    const searchResult = systems.filter(
+      ({ name, description }) =>
+        name.toLocaleLowerCase().includes(query.toLocaleLowerCase()) ||
+        description.toLocaleLowerCase().includes(query.toLocaleLowerCase())
     );
+
+    onSearch(searchResult);
   };
 
   return (
@@ -31,7 +37,7 @@ const SearchInput: React.FC<{
   );
 };
 
-const SystemsList: React.FC<{ systems: System[] }> = ({ systems }) => {
+const SystemsList = ({ systems }: SystemsListProps) => {
   const getSystemUrl = (id: number) => `/systems/${id}`;
 
   return (

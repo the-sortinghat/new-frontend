@@ -5,7 +5,7 @@ interface CheckboxProps extends InputHTMLAttributes<HTMLInputElement> {
   name: string;
 }
 
-const Checkbox: React.FC<CheckboxProps> = ({ name, ...rest }) => {
+const Checkbox = ({ name, ...rest }: CheckboxProps) => {
   return (
     <label className={styles.dimensionCheckbox}>
       {name}

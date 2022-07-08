@@ -1,97 +1,85 @@
 import { useEffect, useState } from "react";
 import CytoscapeComponent from "react-cytoscapejs";
-import { Dimensions } from "@/types/dimensions";
-import { System } from "@/types/system";
+import { Dimension, System } from "@/types/system";
 import { Core } from "cytoscape";
 import graphModel from "@/components/Graph/model";
+import styles from "@/components/Graph/styles.module.css";
 
 type Props = {
   system: System;
-  dimensions: Dimensions;
+  dimensions: Dimension[];
   setSelection: (_: any) => void;
 };
 
-const Graph: React.FC<Props> = ({ system, dimensions, setSelection }) => {
+type SetupGraphInteractionParams = {
+  cyRef: Core | undefined;
+  setSelection: (_: any) => void;
+};
+
+const setupGraphInteraction = ({
+  cyRef,
+  setSelection,
+}: SetupGraphInteractionParams) => {
+  cyRef?.on("click", "node", (e) => {
+    graphModel.handleClick(cyRef!, e, setSelection);
+  });
+  cyRef?.on("mouseover", "edge[type!='db']", (e) => {
+    const edge = e.target;
+    if (!edge.hasClass("semitransp")) edge.style("label", edge.data().label);
+  });
+  cyRef?.on("mouseout", "edge", (e) => {
+    const edge = e.target;
+    edge.style("label", "");
+  });
+};
+
+const handleDimensionsChanges = (cyRef: Core | undefined) => {
+  cyRef
+    ?.elements()
+    .filter((elem) => elem.hasClass("clicked"))
+    .forEach((node) => {
+      graphModel.defocusNodes(cyRef!, node);
+      graphModel.deselectGraphNode(cyRef!, node);
+      graphModel.selectGraphNode(cyRef!, node);
+    });
+};
+
+const Graph = ({ system, dimensions, setSelection }: Props) => {
   const [zoom, setZoom] = useState(0.5);
   let cyRef: Core | undefined = undefined;
 
-  useEffect(() => {
-    if (cyRef) {
-      cyRef.on("click", "node", (e) => {
-        graphModel.click(cyRef!, e, setSelection);
-      });
-      cyRef.on("mouseover", "edge[type!='db']", (e) => {
-        const edge = e.target;
+  useEffect(
+    () => setupGraphInteraction({ cyRef, setSelection }),
+    [cyRef, setSelection]
+  );
+  useEffect(() => handleDimensionsChanges(cyRef), [cyRef, dimensions]);
 
-        if (!edge.hasClass("semitransp"))
-          edge.style("label", edge.data().label);
-      });
-      cyRef.on("mouseout", "edge", (e) => {
-        const edge = e.target;
-        edge.style("label", "");
-      });
+  const zoomIn = () => setZoom(zoom + 0.5);
+
+  const zoomOut = () => {
+    if (zoom > 0.5) {
+      setZoom(zoom - 0.5);
     }
-  }, [cyRef, setSelection]);
-
-  useEffect(() => {
-    if (!cyRef) return;
-
-    cyRef
-      .elements()
-      .filter((elem) => elem.hasClass("clicked"))
-      .forEach((node) => {
-        graphModel.defocusNodes(cyRef!, node);
-        graphModel.deselectGraphNode(cyRef!, node);
-        graphModel.selectGraphNode(cyRef!, node);
-      });
-  }, [cyRef, dimensions]);
+  };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        width: "100%",
-        height: "100%",
-        border: "1px solid #ccc",
-      }}
-    >
+    <div className={styles.graphContainer}>
       <CytoscapeComponent
-        style={{ width: "100%", height: "100%" }}
-        cy={(cy) => {
-          cyRef = cy;
-        }}
+        className={styles.graph}
+        cy={(cy) => (cyRef = cy)}
         minZoom={zoom}
         userZoomingEnabled={false}
         boxSelectionEnabled={false}
         autounselectify={true}
-        elements={graphModel.elements(system, dimensions)}
-        layout={{
-          name: "grid",
-          avoidOverlap: true,
-          ready: (_: any) => {},
-          stop: (_: any) => {},
-        }}
+        elements={graphModel.getElements(system, dimensions)}
+        layout={graphModel.makeLayout()}
         stylesheet={graphModel.stylesheet}
       />
-      <div
-        className="graphZoomOptions"
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignSelf: "end",
-        }}
-      >
-        <button type="button" onClick={() => setZoom(zoom + 0.5)}>
+      <div className={styles.graphZoomOptions}>
+        <button type="button" onClick={zoomIn}>
           +
         </button>
-        <button
-          type="button"
-          onClick={() => {
-            if (zoom > 0.5) {
-              setZoom(zoom - 0.5);
-            }
-          }}
-        >
+        <button type="button" onClick={zoomOut}>
           -
         </button>
       </div>

@@ -6,19 +6,24 @@ import DimensionSelector from "@/components/DimensionSelector";
 import Header from "@/components/Header";
 import MetricsWrapper from "@/components/MetricsWrapper";
 import styles from "@/styles/SystemPage.module.css";
-import { Dimensions } from "@/types/dimensions";
-import { getSystemById, getSystemMetrics } from "@/services/system_data";
-import { System, SystemMetrics } from "@/types/system";
+import { getSystemById, getSystemMetrics } from "@/services/system_service";
+import { Dimension, System, SystemMetrics } from "@/types/system";
 
 const Graph = dynamic(() => import("@/components/Graph"), { ssr: false });
-const ImageKey = dynamic(() => import("@/components/ImageKey"), {
-  ssr: false,
-});
+const ImageKey = dynamic(() => import("@/components/ImageKey"), { ssr: false });
 
-const PageHeader: React.FC<{ router: NextRouter; title: string }> = ({
-  router,
-  title,
-}) => {
+type PageHeaderProps = {
+  router: NextRouter;
+  title: string;
+};
+
+type GraphAndMetricsProps = {
+  system: System;
+  dimensions: Dimension[];
+  metrics: SystemMetrics;
+};
+
+const PageHeader = ({ router, title }: PageHeaderProps) => {
   return (
     <div className={styles.pageHeader}>
       <button
@@ -34,11 +39,8 @@ const PageHeader: React.FC<{ router: NextRouter; title: string }> = ({
   );
 };
 
-const VisualizationAndMetricsWrapper: React.FC<{
-  system: System;
-  dimensions: Dimensions;
-  metrics: SystemMetrics;
-}> = ({ system, dimensions, metrics }) => {
+const GraphAndMetrics = (props: GraphAndMetricsProps) => {
+  const { system, dimensions, metrics } = props;
   const [selectedComponents, setSelectedComponents] = useState<any>([]);
 
   return (
@@ -56,7 +58,6 @@ const VisualizationAndMetricsWrapper: React.FC<{
 
       <MetricsWrapper
         metrics={metrics}
-        dimensions={dimensions}
         selectedComponents={selectedComponents}
       />
     </div>
@@ -65,7 +66,7 @@ const VisualizationAndMetricsWrapper: React.FC<{
 
 const SystemPage: NextPage = () => {
   const [loading, setLoading] = useState(true);
-  const [dimensions, setDimensions] = useState<Dimensions>([]);
+  const [dimensions, setDimensions] = useState<Dimension[]>([]);
   const [system, setSystem] = useState<System>({
     id: -1,
     name: "",
@@ -93,6 +94,7 @@ const SystemPage: NextPage = () => {
         .then((metrics) => {
           setSystemMetrics(metrics);
           setLoading(false);
+          setLoading;
         });
     }
   }, [router.isReady, router.query]);
@@ -111,7 +113,7 @@ const SystemPage: NextPage = () => {
           updateDimensions={setDimensions}
         />
 
-        <VisualizationAndMetricsWrapper
+        <GraphAndMetrics
           system={system}
           dimensions={dimensions}
           metrics={systemMetrics}

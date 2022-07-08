@@ -93,3 +93,10 @@ export type System = {
   syncOperations: Operation[];
   asyncOperations: Operation[];
 };
+
+export enum Dimension {
+  SIZE = "size",
+  DATA_COUPLING = "dataCoupling",
+  SYNC_COUPLING = "syncCoupling",
+  ASYNC_COUPLING = "asyncCoupling",
+}
