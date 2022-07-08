@@ -66,37 +66,22 @@ const GraphAndMetrics = (props: GraphAndMetricsProps) => {
 
 const SystemPage: NextPage = () => {
   const [loading, setLoading] = useState(true);
-  const [dimensions, setDimensions] = useState<Dimension[]>([]);
-  const [system, setSystem] = useState<System>({
-    id: -1,
-    name: "",
-    description: "",
-    modules: [],
-    services: [],
-    databases: [],
-    databasesUsages: [],
-    syncOperations: [],
-    asyncOperations: [],
-  });
-  const [systemMetrics, setSystemMetrics] = useState<SystemMetrics>(
-    {} as SystemMetrics
-  );
+  const [dimensions, setDimensions] = useState([] as Dimension[]);
+  const [system, setSystem] = useState({} as System);
+  const [systemMetrics, setSystemMetrics] = useState({} as SystemMetrics);
   const router = useRouter();
 
   useEffect(() => {
-    if (router.isReady) {
-      const { id } = router.query;
-      getSystemById(id as string)
-        .then((sys) => {
-          setSystem(sys);
-          return getSystemMetrics(id as string);
-        })
-        .then((metrics) => {
-          setSystemMetrics(metrics);
-          setLoading(false);
-          setLoading;
-        });
-    }
+    if (!router.isReady) return;
+
+    const { id } = router.query;
+    getSystemById(id as string)
+      .then((sys) => {
+        setSystem(sys);
+        return getSystemMetrics(id as string);
+      })
+      .then((metrics) => setSystemMetrics(metrics))
+      .finally(() => setLoading(false));
   }, [router.isReady, router.query]);
 
   if (loading) return <p>Loading...</p>;

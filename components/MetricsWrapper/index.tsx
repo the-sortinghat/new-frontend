@@ -1,5 +1,6 @@
 import { SystemMetrics } from "@/types/system";
 import styles from "@/components/MetricsWrapper/styles.module.css";
+import DisplayMetrics from "@/components/DisplayMetrics";
 
 type Props = {
   metrics: SystemMetrics;
@@ -11,10 +12,6 @@ type SplitMetricsReturn = {
   specifics: { [key: string]: {} };
 };
 
-type DisplayMetricsProps = {
-  metrics: { [key: string]: any };
-};
-
 type FilterMetricsParams = {
   metrics: { [key: string]: any };
   name: string;
@@ -24,6 +21,12 @@ type FilterMetricsParams = {
 type SelectedComponent = {
   type: string;
   name: string;
+};
+
+type SelectedComponentMetricsProps = {
+  type: string;
+  name: string;
+  specificMetrics: { [key: string]: {} };
 };
 
 const changeMetricName = (metricName: string): string => {
@@ -89,30 +92,28 @@ const getComponentMetrics = ({ metrics, name, type }: FilterMetricsParams) => {
   }, {});
 };
 
-const DisplayMetrics = ({ metrics }: DisplayMetricsProps) => {
-  return (
-    <>
-      {Object.entries(metrics).map(([metric, value]) => {
-        if (typeof value === "object") {
-          return (
-            <div key={metric}>
-              <p>{metric}:</p>
-              <ul key={metric}>
-                {Object.entries(value as {}).map(([key, val]) => (
-                  <li key={key}>{`${key}: ${val}`}</li>
-                ))}
-              </ul>
-            </div>
-          );
-        }
+const NoComponentSelected = () => {
+  return <p>Select a component to see its metrics.</p>;
+};
 
-        return (
-          <p key={metric}>
-            {metric}: {value}
-          </p>
-        );
-      })}
-    </>
+const SelectedComponentMetrics = ({
+  name,
+  type,
+  specificMetrics,
+}: SelectedComponentMetricsProps) => {
+  const metrics = getComponentMetrics({
+    metrics: specificMetrics,
+    name,
+    type,
+  });
+
+  return (
+    <div>
+      <h4>
+        Metrics of the {type} {name}:
+      </h4>
+      <DisplayMetrics metrics={metrics} />
+    </div>
   );
 };
 
@@ -127,21 +128,15 @@ const MetricsWrapper = ({ metrics, selectedComponents }: Props) => {
 
       {selectedComponents.length > 0 ? (
         selectedComponents.map(({ type, name }: SelectedComponent) => (
-          <div key={`${type}+${name}`}>
-            <h4>
-              Metrics of the {type} {name}:
-            </h4>
-            <DisplayMetrics
-              metrics={getComponentMetrics({
-                metrics: specifics,
-                name,
-                type,
-              })}
-            />
-          </div>
+          <SelectedComponentMetrics
+            key={`${type}+${name}`}
+            name={name}
+            type={type}
+            specificMetrics={specifics}
+          />
         ))
       ) : (
-        <p>Select a component to see its metrics.</p>
+        <NoComponentSelected />
       )}
     </div>
   );

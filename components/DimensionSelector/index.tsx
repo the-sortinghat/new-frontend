@@ -7,14 +7,12 @@ type Props = {
   updateDimensions: (arg: Dimension[]) => void;
 };
 
-const { SIZE, DATA_COUPLING, SYNC_COUPLING, ASYNC_COUPLING } = Dimension;
-
 const DimensionSelector = ({ dimensions, updateDimensions }: Props) => {
   const allDimensions = [
-    { name: "Size", dimension: SIZE },
-    { name: "Data coupling", dimension: DATA_COUPLING },
-    { name: "Sync coupling", dimension: SYNC_COUPLING },
-    { name: "Async coupling", dimension: ASYNC_COUPLING },
+    { name: "Size", dimension: Dimension.SIZE },
+    { name: "Data coupling", dimension: Dimension.DATA_COUPLING },
+    { name: "Sync coupling", dimension: Dimension.SYNC_COUPLING },
+    { name: "Async coupling", dimension: Dimension.ASYNC_COUPLING },
   ];
   const selectedDimensions: { [key: string]: boolean } = allDimensions.reduce(
     (acc, { dimension }) => ({
@@ -42,7 +40,7 @@ const DimensionSelector = ({ dimensions, updateDimensions }: Props) => {
           key={name}
           name={name}
           checked={selectedDimensions[dimension]}
-          onChange={(_) => handleChange(dimension)}
+          onChange={() => handleChange(dimension)}
         />
       ))}
     </div>
