@@ -13,12 +13,11 @@ export default class GraphDataProcessor {
   private constructor(private readonly system: System) {
     this.nodes = this.nodes
       .concat(
-        system.services.map(({ id, name, moduleId, operations }) => ({
+        system.services.map(({ id, name, moduleId }) => ({
           id: `s${id}`,
           label: name,
           type: "service",
           parent: `m${moduleId}`,
-          operations: operations,
         }))
       )
       .concat(
@@ -30,7 +29,31 @@ export default class GraphDataProcessor {
       );
   }
 
-  private dataCouplingDimension(): GraphDataProcessor {
+  private sizeDimension() {
+    this.system.services
+      .reduce(
+        (acc, { id, operations }) => [...acc, { serviceId: id, operations }],
+        [] as { serviceId: number; operations: string[] }[]
+      )
+      .forEach(({ serviceId, operations }) => {
+        operations.forEach((op) => {
+          this.nodes.push({
+            id: `op_${op}_from_s${serviceId}`,
+            label: op,
+            type: "operation",
+          });
+
+          this.edges.push({
+            id: `op${op}/s${serviceId}`,
+            source: `s${serviceId}`,
+            target: `op_${op}_from_s${serviceId}`,
+            type: "operation",
+          });
+        });
+      });
+  }
+
+  private dataCouplingDimension() {
     this.nodes = this.nodes.concat(
       this.system.databasesUsages.map(({ databaseId, namespace }) => ({
         id: `db${databaseId}`,
@@ -41,7 +64,7 @@ export default class GraphDataProcessor {
 
     this.edges = this.edges.concat(
       this.system.databasesUsages.map(
-        ({ serviceId, databaseId, accessType, namespace }) => {
+        ({ serviceId, databaseId, accessType }) => {
           const id = `db${databaseId}/s${serviceId}`;
           const source = `s${serviceId}`;
           const target = `db${databaseId}`;
@@ -64,11 +87,9 @@ export default class GraphDataProcessor {
         }
       )
     );
-
-    return this;
   }
 
-  private syncCouplingDimension(): GraphDataProcessor {
+  private syncCouplingDimension() {
     this.edges = this.edges.concat(
       this.system.syncOperations.map(
         ({ from, to, label }: Operation): Edge => ({
@@ -80,11 +101,9 @@ export default class GraphDataProcessor {
         })
       )
     );
-
-    return this;
   }
 
-  private asyncCouplingDimension(): GraphDataProcessor {
+  private asyncCouplingDimension() {
     this.edges = this.edges.concat(
       this.system.asyncOperations.map(
         ({ from, to, label }: Operation): Edge => ({
@@ -96,22 +115,22 @@ export default class GraphDataProcessor {
         })
       )
     );
-
-    return this;
   }
 
   public static build(system: System, dimensions: Dimension[]): Graph {
     let processor = new GraphDataProcessor(system);
     const buildOptions = {
-      [Dimension.SIZE]() {},
+      [Dimension.SIZE]() {
+        processor.sizeDimension();
+      },
       [Dimension.DATA_COUPLING]() {
-        processor = processor.dataCouplingDimension();
+        processor.dataCouplingDimension();
       },
       [Dimension.SYNC_COUPLING]() {
-        processor = processor.syncCouplingDimension();
+        processor.syncCouplingDimension();
       },
       [Dimension.ASYNC_COUPLING]() {
-        processor = processor.asyncCouplingDimension();
+        processor.asyncCouplingDimension();
       },
     };
 

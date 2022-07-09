@@ -1,10 +1,12 @@
 import { Stylesheet } from "cytoscape";
 
 export const makeLayout = () => ({
-  name: "grid",
+  name: "cose-bilkent",
   avoidOverlap: true,
   ready: (_: any) => {},
   stop: (_: any) => {},
+  nodeRepulsion: 15000,
+  idealEdgeLength: 100,
 });
 
 export const stylesheet = [
@@ -28,6 +30,13 @@ export const stylesheet = [
     style: {
       shape: "hexagon",
       backgroundColor: "green",
+    },
+  },
+  {
+    selector: "node[type = 'operation']",
+    style: {
+      shape: "diamond",
+      backgroundColor: "blue",
     },
   },
   {
@@ -64,6 +73,12 @@ export const stylesheet = [
     selector: "edge[type = 'db']",
     style: {
       label: "data(label)",
+    },
+  },
+  {
+    selector: "edge[type = 'operation']",
+    style: {
+      "target-arrow-shape": "none",
     },
   },
   {

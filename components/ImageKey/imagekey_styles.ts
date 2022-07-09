@@ -12,6 +12,7 @@ export const stylesheet: Stylesheet[] = [
       shape:
         "data(type)" as cytoscape.Css.PropertyValueNode<cytoscape.Css.NodeShape>,
       label: "data(label)",
+      backgroundColor: "data(color)",
       height: 18,
       width: 18,
       "font-size": 12,
@@ -44,6 +45,12 @@ export const stylesheet: Stylesheet[] = [
     selector: "edge[type = 'async']",
     style: {
       "line-style": "dashed",
+    },
+  },
+  {
+    selector: "edge[type = 'operation']",
+    style: {
+      "target-arrow-shape": "none",
     },
   },
 ];

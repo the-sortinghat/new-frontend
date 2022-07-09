@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import CytoscapeComponent from "react-cytoscapejs";
 import { Dimension, System } from "@/types/system";
-import { Core } from "cytoscape";
+import cytoscape, { Core } from "cytoscape";
+import COSEBilkent from "cytoscape-cose-bilkent";
 import graphModel from "@/components/Graph/model";
 import styles from "@/components/Graph/styles.module.css";
+
+cytoscape.use(COSEBilkent);
 
 type Props = {
   system: System;
@@ -21,6 +24,9 @@ const setupGraphInteraction = ({
   setSelection,
 }: SetupGraphInteractionParams) => {
   cyRef?.on("click", "node", (e) => {
+    if (e.target.data().type !== "service" && e.target.data().type !== "module")
+      return;
+
     graphModel.handleClick(cyRef!, e, setSelection);
   });
   cyRef?.on("mouseover", "edge[type!='db']", (e) => {
