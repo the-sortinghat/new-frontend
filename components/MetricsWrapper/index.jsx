@@ -1,35 +1,7 @@
-import { SystemMetrics } from "@/types/system";
-import styles from "@/components/MetricsWrapper/styles.module.css";
-import DisplayMetrics from "@/components/DisplayMetrics";
+import DisplayMetrics from "../DisplayMetrics";
+import styles from "./styles.module.css";
 
-type Props = {
-  metrics: SystemMetrics;
-  selectedComponents?: any;
-};
-
-type SplitMetricsReturn = {
-  globals: { [key: string]: string };
-  specifics: { [key: string]: {} };
-};
-
-type FilterMetricsParams = {
-  metrics: { [key: string]: any };
-  name: string;
-  type: string;
-};
-
-type SelectedComponent = {
-  type: string;
-  name: string;
-};
-
-type SelectedComponentMetricsProps = {
-  type: string;
-  name: string;
-  specificMetrics: { [key: string]: {} };
-};
-
-const changeMetricName = (metricName: string): string => {
+const changeMetricName = (metricName) => {
   let newName = metricName;
   const target = ["a given component", "each component"].find((op) =>
     metricName.includes(op)
@@ -42,9 +14,7 @@ const changeMetricName = (metricName: string): string => {
   return newName;
 };
 
-const splitMetricsIntoGlobalsAndSpecifics = (
-  metrics: SystemMetrics
-): SplitMetricsReturn => {
+const splitMetricsIntoGlobalsAndSpecifics = (metrics) => {
   const metricsByDimension = [
     metrics["Size"],
     metrics["Data source coupling"],
@@ -52,8 +22,8 @@ const splitMetricsIntoGlobalsAndSpecifics = (
     metrics["Asynchronous coupling"],
   ];
 
-  const globals: { [key: string]: any } = {};
-  const specifics: { [key: string]: any } = {};
+  const globals = {};
+  const specifics = {};
 
   metricsByDimension.forEach((metricsSet) => {
     Object.entries(metricsSet).forEach(([name, value]) => {
@@ -73,7 +43,7 @@ const splitMetricsIntoGlobalsAndSpecifics = (
   return { globals, specifics };
 };
 
-const getComponentMetrics = ({ metrics, name, type }: FilterMetricsParams) => {
+const getComponentMetrics = ({ metrics, name, type }) => {
   const pluralType = type + "s";
 
   return Object.keys(metrics).reduce((acc, metric) => {
@@ -96,11 +66,7 @@ const NoComponentSelected = () => {
   return <p>Select a component to see its metrics.</p>;
 };
 
-const SelectedComponentMetrics = ({
-  name,
-  type,
-  specificMetrics,
-}: SelectedComponentMetricsProps) => {
+const SelectedComponentMetrics = ({ name, type, specificMetrics }) => {
   const metrics = getComponentMetrics({
     metrics: specificMetrics,
     name,
@@ -117,7 +83,7 @@ const SelectedComponentMetrics = ({
   );
 };
 
-const MetricsWrapper = ({ metrics, selectedComponents }: Props) => {
+const MetricsWrapper = ({ metrics, selectedComponents }) => {
   const { globals, specifics } = splitMetricsIntoGlobalsAndSpecifics(metrics);
 
   return (
@@ -127,7 +93,7 @@ const MetricsWrapper = ({ metrics, selectedComponents }: Props) => {
       <DisplayMetrics metrics={globals} />
 
       {selectedComponents.length > 0 ? (
-        selectedComponents.map(({ type, name }: SelectedComponent) => (
+        selectedComponents.map(({ type, name }) => (
           <SelectedComponentMetrics
             key={`${type}+${name}`}
             name={name}

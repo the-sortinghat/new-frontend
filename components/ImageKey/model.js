@@ -1,7 +1,6 @@
-import { makeLayout, stylesheet } from "@/components/ImageKey/imagekey_styles";
-import { ElementDefinition } from "cytoscape";
+import { makeLayout, stylesheet } from "./imagekey_styles";
 
-const getElements = (): ElementDefinition[] => [
+const getElements = () => [
   { data: { type: "ellipse", label: "Service", color: "gray" } },
   { data: { type: "rectangle", label: "Module", color: "gray" } },
   { data: { type: "hexagon", label: "Database", color: "green" } },

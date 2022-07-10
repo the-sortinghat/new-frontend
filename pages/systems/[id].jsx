@@ -1,29 +1,18 @@
 import { useEffect, useState } from "react";
-import type { NextPage } from "next";
-import { NextRouter, useRouter } from "next/router";
+import { useRouter } from "next/router";
 import dynamic from "next/dynamic";
-import DimensionSelector from "@/components/DimensionSelector";
-import Header from "@/components/Header";
-import MetricsWrapper from "@/components/MetricsWrapper";
-import styles from "@/styles/SystemPage.module.css";
-import { getSystemById, getSystemMetrics } from "@/services/system_service";
-import { Dimension, System, SystemMetrics } from "@/types/system";
+import DimensionSelector from "../../components/DimensionSelector";
+import Header from "../../components/Header";
+import MetricsWrapper from "../../components/MetricsWrapper";
+import styles from "../../styles/SystemPage.module.css";
+import { getSystemById, getSystemMetrics } from "../../services/system_service";
 
-const Graph = dynamic(() => import("@/components/Graph"), { ssr: false });
-const ImageKey = dynamic(() => import("@/components/ImageKey"), { ssr: false });
+const Graph = dynamic(() => import("../../components/Graph"), { ssr: false });
+const ImageKey = dynamic(() => import("../../components/ImageKey"), {
+  ssr: false,
+});
 
-type PageHeaderProps = {
-  router: NextRouter;
-  title: string;
-};
-
-type GraphAndMetricsProps = {
-  system: System;
-  dimensions: Dimension[];
-  metrics: SystemMetrics;
-};
-
-const PageHeader = ({ router, title }: PageHeaderProps) => {
+const PageHeader = ({ router, title }) => {
   return (
     <div className={styles.pageHeader}>
       <button
@@ -39,9 +28,8 @@ const PageHeader = ({ router, title }: PageHeaderProps) => {
   );
 };
 
-const GraphAndMetrics = (props: GraphAndMetricsProps) => {
-  const { system, dimensions, metrics } = props;
-  const [selectedComponents, setSelectedComponents] = useState<any>([]);
+const GraphAndMetrics = ({ system, dimensions, metrics }) => {
+  const [selectedComponents, setSelectedComponents] = useState([]);
 
   return (
     <div className={styles.grid}>
@@ -64,21 +52,21 @@ const GraphAndMetrics = (props: GraphAndMetricsProps) => {
   );
 };
 
-const SystemPage: NextPage = () => {
+const SystemPage = () => {
   const [loading, setLoading] = useState(true);
-  const [dimensions, setDimensions] = useState([] as Dimension[]);
-  const [system, setSystem] = useState({} as System);
-  const [systemMetrics, setSystemMetrics] = useState({} as SystemMetrics);
+  const [dimensions, setDimensions] = useState([]);
+  const [system, setSystem] = useState({});
+  const [systemMetrics, setSystemMetrics] = useState({});
   const router = useRouter();
 
   useEffect(() => {
     if (!router.isReady) return;
 
     const { id } = router.query;
-    getSystemById(id as string)
+    getSystemById(id)
       .then((sys) => {
         setSystem(sys);
-        return getSystemMetrics(id as string);
+        return getSystemMetrics(id);
       })
       .then((metrics) => setSystemMetrics(metrics))
       .finally(() => setLoading(false));

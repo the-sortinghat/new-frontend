@@ -1,20 +1,15 @@
-import Checkbox from "@/components/Checkbox";
-import styles from "@/components/DimensionSelector/styles.module.css";
-import { Dimension } from "@/types/system";
+import Checkbox from "../Checkbox";
+import { Dimension } from "../../common";
+import styles from "./styles.module.css";
 
-type Props = {
-  dimensions: Dimension[];
-  updateDimensions: (arg: Dimension[]) => void;
-};
-
-const DimensionSelector = ({ dimensions, updateDimensions }: Props) => {
+const DimensionSelector = ({ dimensions, updateDimensions }) => {
   const allDimensions = [
     { name: "Size", dimension: Dimension.SIZE },
     { name: "Data coupling", dimension: Dimension.DATA_COUPLING },
     { name: "Sync coupling", dimension: Dimension.SYNC_COUPLING },
     { name: "Async coupling", dimension: Dimension.ASYNC_COUPLING },
   ];
-  const selectedDimensions: { [key: string]: boolean } = allDimensions.reduce(
+  const selectedDimensions = allDimensions.reduce(
     (acc, { dimension }) => ({
       ...acc,
       [dimension]: dimensions.some((dim) => dim === dimension),
@@ -22,14 +17,14 @@ const DimensionSelector = ({ dimensions, updateDimensions }: Props) => {
     {}
   );
 
-  const handleChange = (dimension: Dimension) => {
+  const handleChange = (dimension) => {
     selectedDimensions[dimension] = !selectedDimensions[dimension];
 
     const newList = Object.keys(selectedDimensions).filter(
       (dimension) => selectedDimensions[dimension]
     );
 
-    updateDimensions(newList as Dimension[]);
+    updateDimensions(newList);
   };
 
   return (

@@ -1,16 +1,11 @@
-import { Edge, Graph, Node } from "@/types/graph";
-import {
-  DatabaseAccessType,
-  Dimension,
-  Operation,
-  System,
-} from "@/types/system";
+import { DatabaseAccessType, Dimension } from "../common";
 
 export default class GraphDataProcessor {
-  private nodes: Node[] = [];
-  private edges: Edge[] = [];
+  constructor(system) {
+    this.system = system;
+    this.nodes = [];
+    this.edges = [];
 
-  private constructor(private readonly system: System) {
     this.nodes = this.nodes
       .concat(
         system.services.map(({ id, name, moduleId }) => ({
@@ -29,11 +24,11 @@ export default class GraphDataProcessor {
       );
   }
 
-  private sizeDimension() {
+  #sizeDimension() {
     this.system.services
       .reduce(
         (acc, { id, operations }) => [...acc, { serviceId: id, operations }],
-        [] as { serviceId: number; operations: string[] }[]
+        []
       )
       .forEach(({ serviceId, operations }) => {
         operations.forEach((op) => {
@@ -53,7 +48,7 @@ export default class GraphDataProcessor {
       });
   }
 
-  private dataCouplingDimension() {
+  #dataCouplingDimension() {
     this.nodes = this.nodes.concat(
       this.system.databasesUsages.map(({ databaseId, namespace }) => ({
         id: `db${databaseId}`,
@@ -89,48 +84,44 @@ export default class GraphDataProcessor {
     );
   }
 
-  private syncCouplingDimension() {
+  #syncCouplingDimension() {
     this.edges = this.edges.concat(
-      this.system.syncOperations.map(
-        ({ from, to, label }: Operation): Edge => ({
-          id: `sync-s${from}/s${to}`,
-          source: `s${from}`,
-          target: `s${to}`,
-          type: "sync",
-          label,
-        })
-      )
+      this.system.syncOperations.map(({ from, to, label }) => ({
+        id: `sync-s${from}/s${to}`,
+        source: `s${from}`,
+        target: `s${to}`,
+        type: "sync",
+        label,
+      }))
     );
   }
 
-  private asyncCouplingDimension() {
+  #asyncCouplingDimension() {
     this.edges = this.edges.concat(
-      this.system.asyncOperations.map(
-        ({ from, to, label }: Operation): Edge => ({
-          id: `async-s${from}/s${to}`,
-          source: `s${from}`,
-          target: `s${to}`,
-          type: "async",
-          label,
-        })
-      )
+      this.system.asyncOperations.map(({ from, to, label }) => ({
+        id: `async-s${from}/s${to}`,
+        source: `s${from}`,
+        target: `s${to}`,
+        type: "async",
+        label,
+      }))
     );
   }
 
-  public static build(system: System, dimensions: Dimension[]): Graph {
+  static build(system, dimensions) {
     let processor = new GraphDataProcessor(system);
     const buildOptions = {
       [Dimension.SIZE]() {
-        processor.sizeDimension();
+        processor.#sizeDimension();
       },
       [Dimension.DATA_COUPLING]() {
-        processor.dataCouplingDimension();
+        processor.#dataCouplingDimension();
       },
       [Dimension.SYNC_COUPLING]() {
-        processor.syncCouplingDimension();
+        processor.#syncCouplingDimension();
       },
       [Dimension.ASYNC_COUPLING]() {
-        processor.asyncCouplingDimension();
+        processor.#asyncCouplingDimension();
       },
     };
 

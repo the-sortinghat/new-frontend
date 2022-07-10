@@ -1,33 +1,18 @@
 import { useEffect, useState } from "react";
 import CytoscapeComponent from "react-cytoscapejs";
-import { Dimension, System } from "@/types/system";
-import cytoscape, { Core } from "cytoscape";
+import cytoscape from "cytoscape";
 import COSEBilkent from "cytoscape-cose-bilkent";
-import graphModel from "@/components/Graph/model";
-import styles from "@/components/Graph/styles.module.css";
+import graphModel from "./model";
+import styles from "./styles.module.css";
 
 cytoscape.use(COSEBilkent);
 
-type Props = {
-  system: System;
-  dimensions: Dimension[];
-  setSelection: (_: any) => void;
-};
-
-type SetupGraphInteractionParams = {
-  cyRef: Core | undefined;
-  setSelection: (_: any) => void;
-};
-
-const setupGraphInteraction = ({
-  cyRef,
-  setSelection,
-}: SetupGraphInteractionParams) => {
+const setupGraphInteraction = ({ cyRef, setSelection }) => {
   cyRef?.on("click", "node", (e) => {
     if (e.target.data().type !== "service" && e.target.data().type !== "module")
       return;
 
-    graphModel.handleClick(cyRef!, e, setSelection);
+    graphModel.handleClick(cyRef, e, setSelection);
   });
   cyRef?.on("mouseover", "edge[type!='db']", (e) => {
     const edge = e.target;
@@ -39,20 +24,20 @@ const setupGraphInteraction = ({
   });
 };
 
-const handleDimensionsChanges = (cyRef: Core | undefined) => {
+const handleDimensionsChanges = (cyRef) => {
   cyRef
     ?.elements()
     .filter((elem) => elem.hasClass("clicked"))
     .forEach((node) => {
-      graphModel.defocusNodes(cyRef!, node);
-      graphModel.deselectGraphNode(cyRef!, node);
-      graphModel.selectGraphNode(cyRef!, node);
+      graphModel.defocusNodes(cyRef, node);
+      graphModel.deselectGraphNode(cyRef, node);
+      graphModel.selectGraphNode(cyRef, node);
     });
 };
 
-const Graph = ({ system, dimensions, setSelection }: Props) => {
+const Graph = ({ system, dimensions, setSelection }) => {
   const [zoom, setZoom] = useState(0.5);
-  let cyRef: Core | undefined = undefined;
+  let cyRef = undefined;
 
   useEffect(
     () => setupGraphInteraction({ cyRef, setSelection }),

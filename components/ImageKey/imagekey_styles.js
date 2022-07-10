@@ -1,16 +1,13 @@
-import { Stylesheet } from "cytoscape";
-
 export const makeLayout = () => ({
   name: "grid",
-  stop: (_: any) => {},
+  stop: () => {},
 });
 
-export const stylesheet: Stylesheet[] = [
+export const stylesheet = [
   {
     selector: "node",
     style: {
-      shape:
-        "data(type)" as cytoscape.Css.PropertyValueNode<cytoscape.Css.NodeShape>,
+      shape: "data(type)",
       label: "data(label)",
       backgroundColor: "data(color)",
       height: 18,

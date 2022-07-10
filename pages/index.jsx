@@ -1,23 +1,12 @@
 import { useEffect, useState } from "react";
-import type { NextPage } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import Header from "@/components/Header";
-import { System } from "@/types/system";
-import { getAllSystems } from "@/services/system_service";
-import styles from "@/styles/Home.module.css";
+import Header from "../components/Header";
+import { getAllSystems } from "../services/system_service";
+import styles from "../styles/Home.module.css";
 
-type SearchInputProps = {
-  systems: System[];
-  onSearch: (systems: System[]) => void;
-};
-
-type SystemsListProps = {
-  systems: System[];
-};
-
-const SearchInput = ({ systems, onSearch }: SearchInputProps) => {
-  const searchSystem = (query: string) => {
+const SearchInput = ({ systems, onSearch }) => {
+  const searchSystem = (query) => {
     const searchResult = systems.filter(
       ({ name, description }) =>
         name.toLocaleLowerCase().includes(query.toLocaleLowerCase()) ||
@@ -37,8 +26,8 @@ const SearchInput = ({ systems, onSearch }: SearchInputProps) => {
   );
 };
 
-const SystemsList = ({ systems }: SystemsListProps) => {
-  const getSystemUrl = (id: number) => `/systems/${id}`;
+const SystemsList = ({ systems }) => {
+  const getSystemUrl = (id) => `/systems/${id}`;
 
   return (
     <div className={styles.grid}>
@@ -58,9 +47,9 @@ const SystemsList = ({ systems }: SystemsListProps) => {
   );
 };
 
-const Home: NextPage = () => {
-  const [allSystems, setAllSystems] = useState<System[]>([]);
-  const [filteredSystems, setFilteredSystems] = useState<System[]>(allSystems);
+const Home = () => {
+  const [allSystems, setAllSystems] = useState([]);
+  const [filteredSystems, setFilteredSystems] = useState(allSystems);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

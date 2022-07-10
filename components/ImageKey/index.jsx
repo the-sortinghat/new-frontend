@@ -1,6 +1,6 @@
 import CytoscapeComponent from "react-cytoscapejs";
-import styles from "@/components/ImageKey/styles.module.css";
-import imageKeyModel from "@/components/ImageKey/model";
+import imageKeyModel from "./model";
+import styles from "./styles.module.css";
 
 const ImageKey = () => {
   return (

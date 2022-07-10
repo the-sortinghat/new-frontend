@@ -1,10 +1,8 @@
-import { Stylesheet } from "cytoscape";
-
 export const makeLayout = () => ({
   name: "cose-bilkent",
   avoidOverlap: true,
-  ready: (_: any) => {},
-  stop: (_: any) => {},
+  ready: () => {},
+  stop: () => {},
   nodeRepulsion: 15000,
   idealEdgeLength: 100,
 });
@@ -102,4 +100,4 @@ export const stylesheet = [
     selector: "edge.semitransp",
     style: { opacity: 0.2 },
   },
-] as Stylesheet[];
+];

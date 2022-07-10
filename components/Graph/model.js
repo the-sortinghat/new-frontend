@@ -1,30 +1,15 @@
-import {
-  Core,
-  EdgeDefinition,
-  ElementDefinition,
-  EventObject,
-  NodeDefinition,
-} from "cytoscape";
-import GraphDataProcessor from "@/services/graph_data_processor";
-import { makeLayout, stylesheet } from "@/components/Graph/graph_styles";
-import { Dimension, System } from "@/types/system";
+import GraphDataProcessor from "../../services/graph_data_processor";
+import { makeLayout, stylesheet } from "./graph_styles";
 
-function getElements(
-  system: System,
-  dimensions: Dimension[]
-): ElementDefinition[] {
+function getElements(system, dimensions) {
   const graph = GraphDataProcessor.build(system, dimensions);
   return [
-    ...graph.nodes.map((node) => ({
-      data: node as unknown as NodeDefinition,
-    })),
-    ...(graph.edges.map((edge) => ({
-      data: edge as unknown,
-    })) as EdgeDefinition[]),
+    ...graph.nodes.map((node) => ({ data: node })),
+    ...graph.edges.map((edge) => ({ data: edge })),
   ];
 }
 
-function handleClick(cy: Core, e: EventObject, setSelection: (_: any) => void) {
+function handleClick(cy, e, setSelection) {
   const node = e.target;
 
   if (node.data().type === "module") {
@@ -66,12 +51,12 @@ function handleClick(cy: Core, e: EventObject, setSelection: (_: any) => void) {
           ...acc,
           { type: elem.data().type, name: elem.data().label },
         ],
-        [] as { type: string; name: string }[]
+        []
       )
   );
 }
 
-function selectGraphNode(cy: Core, n: any) {
+function selectGraphNode(cy, n) {
   if (n.data().type === "service") {
     const parents = n
       .ancestors()
@@ -89,7 +74,7 @@ function selectGraphNode(cy: Core, n: any) {
     n.outgoers().addClass("highlight");
     n.incomers().addClass("highlight");
 
-    parents.forEach((element: any) => {
+    parents.forEach((element) => {
       element.removeClass("semitransp");
     });
 
@@ -115,7 +100,7 @@ function selectGraphNode(cy: Core, n: any) {
   }
 }
 
-function deselectGraphNode(cy: Core, n: any) {
+function deselectGraphNode(cy, n) {
   if (n.data().type === "service") {
     cy.elements().removeClass("highlight").removeClass("semitransp");
     n.removeClass("clicked");
@@ -144,7 +129,7 @@ function deselectGraphNode(cy: Core, n: any) {
       )
       .addClass("semitransp");
 
-    parents.forEach((element: any) => {
+    parents.forEach((element) => {
       element.removeClass("semitransp");
     });
   } else {
@@ -155,7 +140,7 @@ function deselectGraphNode(cy: Core, n: any) {
   }
 }
 
-function defocusNodes(cy: Core, n: any) {
+function defocusNodes(cy, n) {
   if (n.data().type === "service") {
     cy.elements()
       .not(n)

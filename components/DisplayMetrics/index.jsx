@@ -1,18 +1,4 @@
-type DisplayMetricsProps = {
-  metrics: { [key: string]: any };
-};
-
-type ComplexMetricProps = {
-  name: string;
-  value: { [key: string]: any };
-};
-
-type SimpleMetricProps = {
-  name: string;
-  value: string;
-};
-
-const ComplexMetric = ({ name, value }: ComplexMetricProps) => {
+const ComplexMetric = ({ name, value }) => {
   return (
     <div>
       <p>{name}:</p>
@@ -25,7 +11,7 @@ const ComplexMetric = ({ name, value }: ComplexMetricProps) => {
   );
 };
 
-const SimpleMetric = ({ name, value }: SimpleMetricProps) => {
+const SimpleMetric = ({ name, value }) => {
   return (
     <p>
       {name}: {value}
@@ -33,7 +19,7 @@ const SimpleMetric = ({ name, value }: SimpleMetricProps) => {
   );
 };
 
-const DisplayMetrics = ({ metrics }: DisplayMetricsProps) => {
+const DisplayMetrics = ({ metrics }) => {
   return (
     <>
       {Object.entries(metrics).map(([metric, value]) =>
