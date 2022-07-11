@@ -1,64 +1,12 @@
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Header from "../components/Header";
-import { getAllSystems } from "../services/system_service";
+import SystemsList from "../components/SystemsList";
+import useSystems from "../hooks/useSystems";
 import styles from "../styles/Home.module.css";
 
-const SearchInput = ({ systems, onSearch }) => {
-  const searchSystem = (query) => {
-    const searchResult = systems.filter(
-      ({ name, description }) =>
-        name.toLocaleLowerCase().includes(query.toLocaleLowerCase()) ||
-        description.toLocaleLowerCase().includes(query.toLocaleLowerCase())
-    );
-
-    onSearch(searchResult);
-  };
-
-  return (
-    <input
-      className={styles.search}
-      type="text"
-      placeholder="Search..."
-      onChange={(e) => searchSystem(e.target.value)}
-    />
-  );
-};
-
-const SystemsList = ({ systems }) => {
-  const getSystemUrl = (id) => `/systems/${id}`;
-
-  return (
-    <div className={styles.grid}>
-      {systems.length > 0 ? (
-        systems.map(({ id, name, description }) => (
-          <Link key={name} href={getSystemUrl(id)}>
-            <a className={styles.card}>
-              <h2>{name} &rarr;</h2>
-              <p>{description}</p>
-            </a>
-          </Link>
-        ))
-      ) : (
-        <p>System not found!</p>
-      )}
-    </div>
-  );
-};
-
 const Home = () => {
-  const [allSystems, setAllSystems] = useState([]);
-  const [filteredSystems, setFilteredSystems] = useState(allSystems);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    getAllSystems().then((systems) => {
-      setAllSystems(systems);
-      setFilteredSystems(systems);
-      setLoading(false);
-    });
-  }, []);
+  const { loading, systems, onSearch } = useSystems();
 
   return (
     <div className={styles.container}>
@@ -80,13 +28,14 @@ const Home = () => {
 
         <h1 className={styles.title}>Welcome to Sorting Hat!</h1>
 
-        <SearchInput systems={allSystems} onSearch={setFilteredSystems} />
+        <input
+          className={styles.search}
+          type="text"
+          placeholder="Search..."
+          onChange={(e) => onSearch(e.target.value)}
+        />
 
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <SystemsList systems={filteredSystems} />
-        )}
+        {loading ? <p>Loading...</p> : <SystemsList systems={systems} />}
       </main>
     </div>
   );

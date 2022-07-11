@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/router";
 import dynamic from "next/dynamic";
 import DimensionSelector from "../../components/DimensionSelector";
 import Header from "../../components/Header";
 import MetricsWrapper from "../../components/MetricsWrapper";
+import useSystem from "../../hooks/useSystem";
 import styles from "../../styles/SystemPage.module.css";
-import { getSystemById, getSystemMetrics } from "../../services/system_service";
 
 const Graph = dynamic(() => import("../../components/Graph"), { ssr: false });
 const ImageKey = dynamic(() => import("../../components/ImageKey"), {
@@ -53,24 +53,9 @@ const GraphAndMetrics = ({ system, dimensions, metrics }) => {
 };
 
 const SystemPage = () => {
-  const [loading, setLoading] = useState(true);
   const [dimensions, setDimensions] = useState([]);
-  const [system, setSystem] = useState({});
-  const [systemMetrics, setSystemMetrics] = useState({});
   const router = useRouter();
-
-  useEffect(() => {
-    if (!router.isReady) return;
-
-    const { id } = router.query;
-    getSystemById(id)
-      .then((sys) => {
-        setSystem(sys);
-        return getSystemMetrics(id);
-      })
-      .then((metrics) => setSystemMetrics(metrics))
-      .finally(() => setLoading(false));
-  }, [router.isReady, router.query]);
+  const { loading, system, metrics } = useSystem(router.query.id);
 
   if (loading) return <p>Loading...</p>;
 
@@ -89,7 +74,7 @@ const SystemPage = () => {
         <GraphAndMetrics
           system={system}
           dimensions={dimensions}
-          metrics={systemMetrics}
+          metrics={metrics}
         />
       </main>
     </div>
