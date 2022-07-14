@@ -30,14 +30,33 @@ const PageHeader = ({ router, title }) => {
 
 const GraphAndMetrics = ({ system, dimensions, metrics }) => {
   const [selectedComponents, setSelectedComponents] = useState([]);
+  const [depth, setDepth] = useState(1);
 
   return (
     <div className={styles.grid}>
       <div className={styles.view}>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          Click on a service and type a depth level you want to see.
+          <div>
+            Depth:
+            <input
+              type="number"
+              value={depth}
+              placeholder="Depth"
+              onChange={(e) => {
+                const level = parseInt(e.target.value);
+
+                if (level >= 0) setDepth(level);
+              }}
+            />
+          </div>
+        </div>
         <Graph
           system={system}
           dimensions={dimensions}
-          setSelection={setSelectedComponents}
+          selected={selectedComponents}
+          depth={depth}
+          onSelection={setSelectedComponents}
         />
         <div className={styles.imageKey}>
           <ImageKey />
