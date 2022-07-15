@@ -1,11 +1,18 @@
 .imageKeyContainer {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  padding: 1rem;
   width: 100%;
   height: 100%;
   border: 1px solid #ccc;
 }
 
 .imageKey {
-  width: 100%;
-  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.imageLabel {
+  font-size: 0.75rem;
 }

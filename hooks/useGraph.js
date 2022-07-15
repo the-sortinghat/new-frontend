@@ -146,7 +146,7 @@ const useGraph = ({ system, dimensions, depth, selected, onSelection }) => {
 
     const drawDatabase = (node, ctx) => {
       const img = new Image();
-      img.src = "/assets/database.png";
+      img.src = "/assets/database.svg";
       const size = 8;
       ctx.drawImage(img, node.x - size / 2, node.y - size / 2, size, size);
       ctx.fillStyle = "black";
