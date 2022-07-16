@@ -140,7 +140,14 @@ const drawLinkLabelForDatabaseUsages = (graph, link, ctx) => {
   ctx.restore();
 };
 
-const useGraph = ({ system, dimensions, depth, selected, onSelection }) => {
+const useGraph = ({
+  system,
+  dimensions,
+  depth,
+  selected,
+  onSelection,
+  seeModules,
+}) => {
   const graphRef = useRef();
 
   useEffect(() => {
@@ -179,7 +186,7 @@ const useGraph = ({ system, dimensions, depth, selected, onSelection }) => {
       }
 
       if (node) {
-        onSelection([{ id: node.id, type: "service", name: node.label }]);
+        onSelection([{ id: node.id, type: node.type, name: node.label }]);
       }
     };
 
@@ -235,11 +242,13 @@ const useGraph = ({ system, dimensions, depth, selected, onSelection }) => {
       ctx.fillText(node.label, node.x, node.y + 6);
     };
 
-    const { nodes, edges } = GraphDataProcessor.build(system, dimensions);
+    const { nodes, edges } = seeModules
+      ? GraphDataProcessor.buildForModules(system, dimensions)
+      : GraphDataProcessor.build(system, dimensions);
 
     curveOverlappingLinks(edges);
     const initialData = {
-      nodes: nodes.filter((node) => node.type !== "module"),
+      nodes,
       links: edges.map((edge) => ({
         ...edge,
         dashed: edge.type === "async",
@@ -262,7 +271,16 @@ const useGraph = ({ system, dimensions, depth, selected, onSelection }) => {
 
     myGraph.graphData(initialData);
 
-    selected.length > 0 && filterGraphAroundSelectedNode();
+    if (selected.length > 0) {
+      if (
+        (selected[0].type === "service" && !seeModules) ||
+        (selected[0].type === "module" && seeModules)
+      ) {
+        filterGraphAroundSelectedNode();
+      } else {
+        onSelection([]);
+      }
+    }
 
     myGraph
       .onNodeClick(handleNodeClick)
@@ -277,12 +295,13 @@ const useGraph = ({ system, dimensions, depth, selected, onSelection }) => {
           database: () => drawDatabase(node, ctx),
           operation: () => drawOperation(node, ctx),
           service: () => drawService(node, ctx),
+          module: () => drawService(node, ctx),
         };
 
         drawByType[node.type]();
       })
       .onNodeDragEnd((node) => {
-        if (node.type !== "service") return;
+        if (node.type !== "service" && node.type !== "module") return;
         node.fx = node.x;
         node.fy = node.y;
       })
@@ -299,7 +318,7 @@ const useGraph = ({ system, dimensions, depth, selected, onSelection }) => {
       .linkDirectionalArrowRelPos(1)
       .linkLineDash((link) => link.dashed && [3, 3])
       .zoom(3);
-  }, [depth, dimensions, onSelection, selected, system]);
+  }, [depth, dimensions, onSelection, selected, system, seeModules]);
 
   return graphRef;
 };

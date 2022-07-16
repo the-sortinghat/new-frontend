@@ -6,6 +6,7 @@ import Header from "../../components/Header";
 import MetricsWrapper from "../../components/MetricsWrapper";
 import useSystem from "../../hooks/useSystem";
 import styles from "../../styles/SystemPage.module.css";
+import Checkbox from "../../components/Checkbox";
 
 const Graph = dynamic(() => import("../../components/Graph"), { ssr: false });
 const ImageKey = dynamic(() => import("../../components/ImageKey"), {
@@ -28,7 +29,7 @@ const PageHeader = ({ router, title }) => {
   );
 };
 
-const GraphAndMetrics = ({ system, dimensions, metrics }) => {
+const GraphAndMetrics = ({ system, dimensions, metrics, seeModules }) => {
   const [selectedComponents, setSelectedComponents] = useState([]);
   const [depth, setDepth] = useState(1);
 
@@ -57,6 +58,7 @@ const GraphAndMetrics = ({ system, dimensions, metrics }) => {
           selected={selectedComponents}
           depth={depth}
           onSelection={setSelectedComponents}
+          seeModules={seeModules}
         />
         <div className={styles.imageKey}>
           <ImageKey />
@@ -73,6 +75,7 @@ const GraphAndMetrics = ({ system, dimensions, metrics }) => {
 
 const SystemPage = () => {
   const [dimensions, setDimensions] = useState([]);
+  const [seeModules, setSeeModules] = useState(false);
   const router = useRouter();
   const { loading, system, metrics } = useSystem(router.query.id);
 
@@ -90,10 +93,17 @@ const SystemPage = () => {
           updateDimensions={setDimensions}
         />
 
+        <Checkbox
+          name="Group services by deployment unit"
+          checked={seeModules}
+          onChange={() => setSeeModules((previous) => !previous)}
+        />
+
         <GraphAndMetrics
           system={system}
           dimensions={dimensions}
           metrics={metrics}
+          seeModules={seeModules}
         />
       </main>
     </div>

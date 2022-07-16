@@ -6,22 +6,14 @@ export default class GraphDataProcessor {
     this.nodes = [];
     this.edges = [];
 
-    this.nodes = this.nodes
-      .concat(
-        system.services.map(({ id, name, moduleId }) => ({
-          id: `s${id}`,
-          label: name,
-          type: "service",
-          parent: `m${moduleId}`,
-        }))
-      )
-      .concat(
-        system.modules.map(({ id, name }) => ({
-          id: `m${id}`,
-          label: name,
-          type: "module",
-        }))
-      );
+    this.nodes = this.nodes.concat(
+      system.services.map(({ id, name, moduleId }) => ({
+        id: `s${id}`,
+        label: name,
+        type: "service",
+        parent: `m${moduleId}`,
+      }))
+    );
   }
 
   #sizeDimension() {
@@ -109,7 +101,7 @@ export default class GraphDataProcessor {
   }
 
   static build(system, dimensions) {
-    let processor = new GraphDataProcessor(system);
+    const processor = new GraphDataProcessor(system);
     const buildOptions = {
       [Dimension.SIZE]() {
         processor.#sizeDimension();
@@ -128,5 +120,105 @@ export default class GraphDataProcessor {
     dimensions.forEach((dimension) => buildOptions[dimension]());
 
     return { nodes: processor.nodes, edges: processor.edges };
+  }
+
+  static buildForModules(system, dimensions) {
+    const setOfDimensions = new Set(dimensions);
+    const serviceToModuleMap = {};
+
+    system.services.find((s) => {
+      serviceToModuleMap[s.id] = system.modules.find(
+        (mod) => mod.id === s.moduleId
+      );
+    });
+
+    let nodes = [];
+    let edges = [];
+
+    nodes = system.modules.map(({ id, name }) => ({
+      id: `m${id}`,
+      label: name,
+      type: "module",
+    }));
+
+    if (setOfDimensions.has(Dimension.SIZE)) {
+      system.services.forEach((s) => {
+        s.operations.forEach((op) => {
+          nodes.push({
+            id: `op_${op}_from_m${serviceToModuleMap[s.id].id}`,
+            label: op,
+            type: "operation",
+          });
+
+          edges.push({
+            id: `op${op}/m${serviceToModuleMap[s.id].id}`,
+            source: `m${serviceToModuleMap[s.id].id}`,
+            target: `op_${op}_from_m${serviceToModuleMap[s.id].id}`,
+            type: "operation",
+          });
+        });
+      });
+    }
+
+    if (setOfDimensions.has(Dimension.DATA_COUPLING)) {
+      nodes = nodes.concat(
+        system.databasesUsages.map(({ databaseId, namespace }) => ({
+          id: `db${databaseId}`,
+          label: namespace,
+          type: "database",
+        }))
+      );
+
+      edges = edges.concat(
+        system.databasesUsages.map(({ serviceId, databaseId, accessType }) => {
+          const moduleId = serviceToModuleMap[serviceId].id;
+          const id = `db${databaseId}/m${moduleId}`;
+          const source = `m${moduleId}`;
+          const target = `db${databaseId}`;
+          const label = `${
+            accessType === DatabaseAccessType.readAndWrite
+              ? "R/W"
+              : accessType === DatabaseAccessType.read
+              ? "R"
+              : "W"
+          }`;
+          const type = "db";
+
+          return {
+            id,
+            source,
+            target,
+            label,
+            type,
+          };
+        })
+      );
+    }
+
+    if (setOfDimensions.has(Dimension.SYNC_COUPLING)) {
+      edges = edges.concat(
+        system.syncOperations.map(({ from, to, label }) => ({
+          id: `sync-m${serviceToModuleMap[from].id}/m${serviceToModuleMap[to].id}`,
+          source: `m${serviceToModuleMap[from].id}`,
+          target: `m${serviceToModuleMap[to].id}`,
+          type: "sync",
+          label,
+        }))
+      );
+    }
+
+    if (setOfDimensions.has(Dimension.ASYNC_COUPLING)) {
+      edges = edges.concat(
+        system.asyncOperations.map(({ from, to, label }) => ({
+          id: `async-m${serviceToModuleMap[from].id}/m${serviceToModuleMap[to].id}`,
+          source: `m${serviceToModuleMap[from].id}`,
+          target: `m${serviceToModuleMap[to].id}`,
+          type: "async",
+          label,
+        }))
+      );
+    }
+
+    return { nodes, edges };
   }
 }
