@@ -7,11 +7,12 @@ export default class GraphDataProcessor {
     this.edges = [];
 
     this.nodes = this.nodes.concat(
-      system.services.map(({ id, name, moduleId }) => ({
+      system.services.map(({ id, name, moduleId, operations }) => ({
         id: `s${id}`,
         label: name,
         type: "service",
         parent: `m${moduleId}`,
+        operations,
       }))
     );
   }
@@ -77,11 +78,36 @@ export default class GraphDataProcessor {
   }
 
   #syncCouplingDimension() {
+    if (this.nodes.every((n) => n.type !== "operation")) {
+      this.system.services.forEach((s) => {
+        s.operations.forEach((op) => {
+          if (
+            this.system.syncOperations.find(
+              ({ to, label }) => to === s.id && label === op
+            )
+          ) {
+            this.nodes.push({
+              id: `op_${op}_from_s${s.id}`,
+              label: op,
+              type: "operation",
+            });
+
+            this.edges.push({
+              id: `op${op}/s${s.id}`,
+              source: `s${s.id}`,
+              target: `op_${op}_from_s${s.id}`,
+              type: "operation",
+            });
+          }
+        });
+      });
+    }
+
     this.edges = this.edges.concat(
       this.system.syncOperations.map(({ from, to, label }) => ({
-        id: `sync-s${from}/s${to}`,
-        source: `s${from}`,
-        target: `s${to}`,
+        id: `sync-op_${label}_from_s${to}/s${from}`,
+        source: `op_${label}_from_s${to}`,
+        target: `s${from}`,
         type: "sync",
         label,
       }))
