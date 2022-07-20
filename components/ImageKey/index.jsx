@@ -11,16 +11,16 @@ const ImageKey = () => {
       label: "Service exposes operation",
     },
     {
+      img: "/assets/operation_consumed.svg",
+      label: "An operation is consumed by a service",
+    },
+    {
       img: "/assets/db_usage.svg",
       label: "Service accesses database",
     },
     {
-      img: "/assets/sync_operation.svg",
-      label: "Service consumes operation of another service",
-    },
-    {
       img: "/assets/async_operation.svg",
-      label: "Service publishes a message that another service consume",
+      label: "Service A publishes a message that Service B consumes",
     },
   ];
   return (
