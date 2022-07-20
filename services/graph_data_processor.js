@@ -1,4 +1,5 @@
 import { DatabaseAccessType, Dimension } from "../common";
+import { curveOverlappingLinks } from "./graph_utils";
 
 export default class GraphDataProcessor {
   constructor(system) {
@@ -7,11 +8,10 @@ export default class GraphDataProcessor {
     this.edges = [];
 
     this.nodes = this.nodes.concat(
-      system.services.map(({ id, name, moduleId, operations }) => ({
+      system.services.map(({ id, name, operations }) => ({
         id: `s${id}`,
         label: name,
         type: "service",
-        parent: `m${moduleId}`,
         operations,
       }))
     );
@@ -145,7 +145,29 @@ export default class GraphDataProcessor {
 
     dimensions.forEach((dimension) => buildOptions[dimension]());
 
-    return { nodes: processor.nodes, edges: processor.edges };
+    curveOverlappingLinks(processor.edges);
+
+    processor.edges.forEach((link) => {
+      const a = processor.nodes.find((n) => n.id === link.source);
+      const b = processor.nodes.find((n) => n.id === link.target);
+      !a.neighbors && (a.neighbors = []);
+      !b.neighbors && (b.neighbors = []);
+      a.neighbors.push(b);
+      b.neighbors.push(a);
+
+      !a.links && (a.links = []);
+      !b.links && (b.links = []);
+      a.links.push(link);
+      b.links.push(link);
+    });
+
+    return {
+      nodes: processor.nodes,
+      links: processor.edges.map((edge) => ({
+        ...edge,
+        dashed: edge.type === "async",
+      })),
+    };
   }
 
   static buildForModules(system, dimensions) {
@@ -222,11 +244,36 @@ export default class GraphDataProcessor {
     }
 
     if (setOfDimensions.has(Dimension.SYNC_COUPLING)) {
+      if (nodes.every((n) => n.type !== "operation")) {
+        system.services.forEach((s) => {
+          s.operations.forEach((op) => {
+            if (
+              system.syncOperations.find(
+                ({ to, label }) => to === s.id && label === op
+              )
+            ) {
+              nodes.push({
+                id: `op_${op}_from_m${serviceToModuleMap[s.id].id}`,
+                label: op,
+                type: "operation",
+              });
+
+              edges.push({
+                id: `op${op}/m${serviceToModuleMap[s.id].id}`,
+                source: `m${serviceToModuleMap[s.id].id}`,
+                target: `op_${op}_from_m${serviceToModuleMap[s.id].id}`,
+                type: "operation",
+              });
+            }
+          });
+        });
+      }
+
       edges = edges.concat(
         system.syncOperations.map(({ from, to, label }) => ({
-          id: `sync-m${serviceToModuleMap[from].id}/m${serviceToModuleMap[to].id}`,
-          source: `m${serviceToModuleMap[from].id}`,
-          target: `m${serviceToModuleMap[to].id}`,
+          id: `sync-op_${label}_from_m${serviceToModuleMap[to].id}/m${serviceToModuleMap[from].id}`,
+          source: `op_${label}_from_m${serviceToModuleMap[to].id}`,
+          target: `m${serviceToModuleMap[from].id}`,
           type: "sync",
           label,
         }))
@@ -245,6 +292,28 @@ export default class GraphDataProcessor {
       );
     }
 
-    return { nodes, edges };
+    curveOverlappingLinks(edges);
+
+    edges.forEach((link) => {
+      const a = nodes.find((n) => n.id === link.source);
+      const b = nodes.find((n) => n.id === link.target);
+      !a.neighbors && (a.neighbors = []);
+      !b.neighbors && (b.neighbors = []);
+      a.neighbors.push(b);
+      b.neighbors.push(a);
+
+      !a.links && (a.links = []);
+      !b.links && (b.links = []);
+      a.links.push(link);
+      b.links.push(link);
+    });
+
+    return {
+      nodes,
+      links: edges.map((edge) => ({
+        ...edge,
+        dashed: edge.type === "async",
+      })),
+    };
   }
 }

@@ -1,295 +1,87 @@
 import ForceGraph from "force-graph";
-import { useEffect, useRef } from "react";
-import GraphDataProcessor from "../services/graph_data_processor";
+import { useEffect, useRef, useState } from "react";
+import {
+  calculateNeighborsByDepth,
+  getAllCombinationsOfGraphData,
+} from "../services/graph_utils";
+import {
+  drawDatabase,
+  drawLinkLabelForDatabaseUsages,
+  drawOperation,
+  drawService,
+} from "../services/graph_elements";
 
-export const curveOverlappingLinks = (links) => {
-  const selfLoopLinks = {};
-  const sameNodesLinks = {};
-  const curvatureMinMax = 0.5;
+const filterGraphAroundSelectedNode = (myGraph, depth, clickedNode) => {
+  const { allNeighbors, allLinks } = calculateNeighborsByDepth(
+    clickedNode,
+    depth
+  );
+  const highlightNodes = new Set();
+  const highlightLinks = new Set();
 
-  // 1. assign each link a nodePairId that combines their source and target independent of the links direction
-  // 2. group links together that share the same two nodes or are self-loops
-  links.forEach((link) => {
-    link.nodePairId =
-      link.source <= link.target
-        ? link.source + "_" + link.target
-        : link.target + "_" + link.source;
-    const map = link.source === link.target ? selfLoopLinks : sameNodesLinks;
-    if (!map[link.nodePairId]) {
-      map[link.nodePairId] = [];
-    }
-    map[link.nodePairId].push(link);
+  clickedNode.clicked = true;
+  highlightNodes.add(clickedNode);
+  allNeighbors.forEach((neighbor) => {
+    neighbor.highlighted = true;
+    highlightNodes.add(neighbor);
+  });
+  allLinks.forEach((link) => {
+    link.highlighted = true;
+    highlightLinks.add(link);
   });
 
-  // Compute the curvature for self-loop links to avoid overlaps
-  Object.keys(selfLoopLinks).forEach((id) => {
-    const links = selfLoopLinks[id];
-    const lastIndex = links.length - 1;
-    links[lastIndex].curvature = 1;
-    const delta = (1 - curvatureMinMax) / lastIndex;
-    for (let i = 0; i < lastIndex; i++) {
-      links[i].curvature = curvatureMinMax + i * delta;
-    }
+  myGraph.graphData({
+    nodes: [...highlightNodes],
+    links: [...highlightLinks],
   });
-
-  // Compute the curvature for links sharing the same two nodes to avoid overlaps
-  Object.keys(sameNodesLinks)
-    .filter((nodePairId) => sameNodesLinks[nodePairId].length > 1)
-    .forEach((nodePairId) => {
-      const links = sameNodesLinks[nodePairId];
-      const lastIndex = links.length - 1;
-      const lastLink = links[lastIndex];
-      lastLink.curvature = curvatureMinMax;
-      const delta = (2 * curvatureMinMax) / lastIndex;
-      for (let i = 0; i < lastIndex; i++) {
-        links[i].curvature = -curvatureMinMax + i * delta;
-        if (lastLink.source !== links[i].source) {
-          links[i].curvature *= -1; // flip it around, otherwise they overlap
-        }
-      }
-    });
 };
 
-export const calculateNeighborsByDepth = (node, depth) => {
-  const allNeighbors = [];
-  const allLinks = [];
-  const queue = [];
-  const visited = new Set();
-
-  queue.push([node, 0]);
-
-  while (queue.length > 0) {
-    const [currNode, level] = queue.shift();
-
-    if (level === depth) continue;
-    if (!currNode.neighbors) continue;
-
-    for (let i = 0; i < currNode.neighbors.length; i++) {
-      const neighbor = currNode.neighbors[i];
-      allLinks.push(
-        currNode.links.find(
-          (link) => link.target === neighbor.id || link.source === neighbor.id
-        )
-      );
-
-      if (!visited.has(neighbor.id)) {
-        visited.add(neighbor.id);
-        allNeighbors.push(neighbor);
-        queue.push([neighbor, level + 1]);
-      }
-    }
-  }
-
-  return { allNeighbors, allLinks };
-};
-
-const drawLinkLabelForDatabaseUsages = (graph, link, ctx) => {
-  const MAX_FONT_SIZE = 4;
-  const LABEL_NODE_MARGIN = graph.nodeRelSize() * 1.5;
-
-  const start = link.source;
-  const end = link.target;
-
-  // ignore unbound links
-  if (typeof start !== "object" || typeof end !== "object") return;
-
-  // calculate label positioning
-  const textPos = Object.assign(
-    ...["x", "y"].map((c) => ({
-      [c]: start[c] + (end[c] - start[c]) / 2, // calc middle point
-    }))
-  );
-
-  const relLink = { x: end.x - start.x, y: end.y - start.y };
-
-  const maxTextLength =
-    Math.sqrt(Math.pow(relLink.x, 2) + Math.pow(relLink.y, 2)) -
-    LABEL_NODE_MARGIN * 2;
-
-  let textAngle = Math.atan2(relLink.y, relLink.x);
-  // maintain label vertical orientation for legibility
-  if (textAngle > Math.PI / 2) textAngle = -(Math.PI - textAngle);
-  if (textAngle < -Math.PI / 2) textAngle = -(-Math.PI - textAngle);
-
-  // estimate fontSize to fit in link length
-  ctx.font = "1px Sans-Serif";
-  const fontSize = Math.min(
-    MAX_FONT_SIZE,
-    maxTextLength / ctx.measureText(link.label).width
-  );
-  ctx.font = `${fontSize}px Sans-Serif`;
-  const textWidth = ctx.measureText(link.label).width;
-  const bckgDimensions = [textWidth, fontSize].map((n) => n + fontSize * 0.2); // some padding
-
-  // draw text link.label (with background rect)
-  ctx.save();
-  ctx.translate(textPos.x, textPos.y);
-  ctx.rotate(textAngle);
-
-  ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-  ctx.fillRect(
-    -bckgDimensions[0] / 2,
-    -bckgDimensions[1] / 2,
-    ...bckgDimensions
-  );
-
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillStyle = "darkgrey";
-  ctx.fillText(link.label, 0, 0);
-  ctx.restore();
-};
-
-const useGraph = ({
-  system,
-  dimensions,
-  depth,
-  selected,
-  onSelection,
-  seeModules,
-}) => {
+const useGraph = ({ system, dimensions, depth, seeModules, onSelection }) => {
   const graphRef = useRef();
+  const [allCombinations, setAllCombinations] = useState();
+  const myGraph = useRef(ForceGraph());
+  const [clickedNode, setClickedNode] = useState();
+  const [defaultGraphData, setDefaultGraphData] = useState({
+    nodes: [],
+    links: [],
+  });
+
+  useEffect(() => {
+    setAllCombinations(getAllCombinationsOfGraphData(system));
+  }, [system]);
+
+  useEffect(() => {
+    if (allCombinations === undefined) return;
+
+    if (myGraph === undefined) return;
+
+    const combination = allCombinations[dimensions.join(",")];
+    const data = seeModules ? combination.forModules : combination.forServices;
+
+    defaultGraphData.nodes.forEach((node) => {
+      node.highlighted = false;
+      node.clicked = false;
+    });
+    defaultGraphData.links.forEach((link) => (link.highlighted = false));
+
+    onSelection([]);
+
+    setDefaultGraphData(data);
+  }, [allCombinations, dimensions, seeModules, defaultGraphData, onSelection]);
 
   useEffect(() => {
     const width = graphRef.current.clientWidth;
     const height = graphRef.current.clientHeight;
-    const myGraph = ForceGraph()(graphRef.current).width(width).height(height);
 
-    const highlightNodes = new Set();
-    const highlightLinks = new Set();
+    myGraph.current = ForceGraph()(graphRef.current)
+      .width(width)
+      .height(height);
 
-    const filterGraphAroundSelectedNode = () => {
-      const node = myGraph
-        .graphData()
-        .nodes.find((n) => n.id === selected[0].id);
-
-      const { allNeighbors, allLinks } = calculateNeighborsByDepth(node, depth);
-      node.neighbors = [...allNeighbors];
-      node.links = [...allLinks];
-
-      highlightNodes.add(node);
-      node?.neighbors?.forEach((neighbor) => highlightNodes.add(neighbor));
-      node?.links?.forEach((link) => highlightLinks.add(link));
-
-      myGraph.zoom(5, 1000);
-
-      myGraph.graphData({
-        nodes: [...highlightNodes],
-        links: [...highlightLinks],
-      });
-    };
-
-    const handleNodeClick = (node) => {
-      if (selected.find((n) => n.id === node.id)) {
-        onSelection([]);
-        return;
-      }
-
-      if (node) {
-        onSelection([{ id: node.id, type: node.type, name: node.label }]);
-      }
-    };
-
-    const drawService = (node, ctx) => {
-      ctx.beginPath();
-      ctx.arc(node.x, node.y, 3 * 1.4, 0, 2 * Math.PI, false);
-      ctx.fillStyle = selected.find((n) => n.id === node.id)
-        ? "orange"
-        : highlightNodes.has(node)
-        ? "#6b46c1"
-        : "#CCC";
-      ctx.stroke();
-      ctx.fill();
-
-      ctx.fillStyle = "black";
-      ctx.font = `3px 'Montserrat'`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(node.label, node.x, node.y + 9);
-    };
-
-    const drawDatabase = (node, ctx) => {
-      const img = new Image();
-      img.src = "/assets/database.svg";
-      const size = 8;
-      ctx.drawImage(img, node.x - size / 2, node.y - size / 2, size, size);
-      ctx.fillStyle = "black";
-      ctx.font = `3px 'Montserrat'`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(node.label, node.x, node.y + 10);
-    };
-
-    const drawOperation = (node, ctx) => {
-      ctx.beginPath();
-      const width = 5;
-      const height = 5;
-      ctx.moveTo(node.x, node.y);
-      // top left edge
-      ctx.lineTo(node.x - width / 2, node.y + height / 2);
-
-      // bottom left edge
-      ctx.lineTo(node.x, node.y + height);
-
-      // bottom right edge
-      ctx.lineTo(node.x + width / 2, node.y + height / 2);
-      ctx.fillStyle = highlightNodes.has(node) ? "#6b46c1" : "blue";
-      ctx.fill();
-      ctx.fillStyle = "black";
-      ctx.font = `3px 'Montserrat'`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(node.label, node.x, node.y + 6);
-    };
-
-    const { nodes, edges } = seeModules
-      ? GraphDataProcessor.buildForModules(system, dimensions)
-      : GraphDataProcessor.build(system, dimensions);
-
-    curveOverlappingLinks(edges);
-    const initialData = {
-      nodes,
-      links: edges.map((edge) => ({
-        ...edge,
-        dashed: edge.type === "async",
-      })),
-    };
-
-    initialData.links.forEach((link) => {
-      const a = nodes.find((n) => n.id === link.source);
-      const b = nodes.find((n) => n.id === link.target);
-      !a.neighbors && (a.neighbors = []);
-      !b.neighbors && (b.neighbors = []);
-      a.neighbors.push(b);
-      b.neighbors.push(a);
-
-      !a.links && (a.links = []);
-      !b.links && (b.links = []);
-      a.links.push(link);
-      b.links.push(link);
-    });
-
-    myGraph.graphData(initialData);
-
-    if (selected.length > 0) {
-      if (
-        (selected[0].type === "service" && !seeModules) ||
-        (selected[0].type === "module" && seeModules)
-      ) {
-        filterGraphAroundSelectedNode();
-      } else {
-        onSelection([]);
-      }
-    }
-
-    myGraph
-      .onNodeClick(handleNodeClick)
+    myGraph.current
       .autoPauseRedraw(false) // keep redrawing after engine has stopped
-      .linkWidth((link) => (highlightLinks.has(link) ? 5 : 1))
+      .linkWidth((link) => (link.highlighted ? 5 : 1))
       .linkDirectionalParticles(4)
-      .linkDirectionalParticleWidth((link) =>
-        highlightLinks.has(link) ? 4 : 0
-      )
+      .linkDirectionalParticleWidth((link) => (link.highlighted ? 4 : 0))
       .nodeCanvasObject((node, ctx) => {
         const drawByType = {
           database: () => drawDatabase(node, ctx),
@@ -311,14 +103,67 @@ const useGraph = ({
         if (link.source.type !== "database" && link.target.type !== "database")
           return;
 
-        drawLinkLabelForDatabaseUsages(myGraph, link, ctx);
+        drawLinkLabelForDatabaseUsages(
+          myGraph.current.nodeRelSize(),
+          link,
+          ctx
+        );
       })
       .linkDirectionalArrowLength(6)
       .linkWidth(3)
       .linkDirectionalArrowRelPos(1)
       .linkLineDash((link) => link.dashed && [3, 3])
-      .zoom(3);
-  }, [depth, dimensions, onSelection, selected, system, seeModules]);
+      .zoom(3)
+      .centerAt(0, 0);
+  }, []);
+
+  useEffect(() => {
+    myGraph.current.onNodeClick((node) => {
+      if (node.type !== "service" && node.type === "module") return;
+
+      if (clickedNode && clickedNode.id === node.id) {
+        setClickedNode(undefined);
+        return;
+      }
+
+      if (node) {
+        setClickedNode(node);
+      }
+    });
+  }, [clickedNode]);
+
+  useEffect(() => {
+    if (clickedNode) {
+      if (
+        (clickedNode.type === "service" && !seeModules) ||
+        (clickedNode.type === "module" && seeModules)
+      ) {
+        filterGraphAroundSelectedNode(myGraph.current, depth, clickedNode);
+      }
+    } else {
+      defaultGraphData.nodes.forEach((node) => {
+        node.highlighted = false;
+        node.clicked = false;
+      });
+      defaultGraphData.links.forEach((link) => (link.highlighted = false));
+
+      myGraph.current.graphData(defaultGraphData);
+    }
+  }, [depth, clickedNode, seeModules, defaultGraphData]);
+
+  useEffect(() => {
+    if (clickedNode) {
+      onSelection([
+        { id: clickedNode.id, type: clickedNode.type, name: clickedNode.label },
+      ]);
+    } else {
+      onSelection([]);
+    }
+  }, [clickedNode, onSelection]);
+
+  useEffect(() => {
+    myGraph.current.graphData(defaultGraphData);
+  }, [defaultGraphData]);
 
   return graphRef;
 };
