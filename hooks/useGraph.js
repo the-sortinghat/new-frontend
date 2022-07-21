@@ -112,7 +112,7 @@ const useGraph = ({ system, dimensions, depth, seeModules, onSelection }) => {
 
   useEffect(() => {
     myGraph.current.onNodeClick((node) => {
-      if (node.type !== "service" && node.type === "module") return;
+      if (node.type !== "service" && node.type !== "module") return;
 
       if (clickedNode && clickedNode.id === node.id) {
         setClickedNode(undefined);

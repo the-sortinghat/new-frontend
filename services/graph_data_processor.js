@@ -2,48 +2,101 @@ import { DatabaseAccessType, Dimension } from "../common";
 import { curveOverlappingLinks } from "./graph_utils";
 
 export default class GraphDataProcessor {
-  constructor(system) {
-    this.system = system;
+  constructor(system, componentType = "service") {
     this.nodes = [];
     this.edges = [];
+    this.components = [];
+    this.databasesUsages = [];
+    this.syncOperations = [];
+    this.asyncOperations = [];
+
+    if (componentType === "module") {
+      this.components = system.modules.map((m) => ({
+        ...m,
+        id: `m${m.id}`,
+        type: "module",
+        operations: system.services
+          .filter((s) => s.moduleId === m.id)
+          .reduce((acc, { operations }) => [...acc, ...operations], []),
+      }));
+      this.databasesUsages = system.databasesUsages.map((usage) => ({
+        ...usage,
+        componentId: `m${
+          system.services.find((s) => s.id === usage.serviceId).moduleId
+        }`,
+      }));
+      this.syncOperations = system.syncOperations.map(
+        ({ from, to, label }) => ({
+          from: `m${system.services.find((s) => s.id === from).moduleId}`,
+          to: `m${system.services.find((s) => s.id === to).moduleId}`,
+          label,
+        })
+      );
+      this.asyncOperations = system.asyncOperations.map(
+        ({ from, to, label }) => ({
+          from: `m${system.services.find((s) => s.id === from).moduleId}`,
+          to: `m${system.services.find((s) => s.id === to).moduleId}`,
+          label,
+        })
+      );
+    } else {
+      this.components = system.services.map((s) => ({
+        ...s,
+        id: `s${s.id}`,
+        type: "service",
+      }));
+      this.databasesUsages = system.databasesUsages.map((usage) => ({
+        ...usage,
+        componentId: `s${usage.serviceId}`,
+      }));
+      this.syncOperations = system.syncOperations.map(
+        ({ from, to, label }) => ({
+          from: `s${from}`,
+          to: `s${to}`,
+          label,
+        })
+      );
+      this.asyncOperations = system.asyncOperations.map(
+        ({ from, to, label }) => ({
+          from: `s${from}`,
+          to: `s${to}`,
+          label,
+        })
+      );
+    }
 
     this.nodes = this.nodes.concat(
-      system.services.map(({ id, name, operations }) => ({
-        id: `s${id}`,
+      this.components.map(({ id, name, type, operations }) => ({
+        id,
         label: name,
-        type: "service",
+        type,
         operations,
       }))
     );
   }
 
   #sizeDimension() {
-    this.system.services
-      .reduce(
-        (acc, { id, operations }) => [...acc, { serviceId: id, operations }],
-        []
-      )
-      .forEach(({ serviceId, operations }) => {
-        operations.forEach((op) => {
-          this.nodes.push({
-            id: `op_${op}_from_s${serviceId}`,
-            label: op,
-            type: "operation",
-          });
+    this.components.forEach((comp) => {
+      comp.operations.forEach((op) => {
+        this.nodes.push({
+          id: `op_${op}_from_${comp.id}`,
+          label: op,
+          type: "operation",
+        });
 
-          this.edges.push({
-            id: `op${op}/s${serviceId}`,
-            source: `s${serviceId}`,
-            target: `op_${op}_from_s${serviceId}`,
-            type: "operation",
-          });
+        this.edges.push({
+          id: `op${op}/${comp.id}`,
+          source: comp.id,
+          target: `op_${op}_from_${comp.id}`,
+          type: "operation",
         });
       });
+    });
   }
 
   #dataCouplingDimension() {
     this.nodes = this.nodes.concat(
-      this.system.databasesUsages.map(({ databaseId, namespace }) => ({
+      this.databasesUsages.map(({ databaseId, namespace }) => ({
         id: `db${databaseId}`,
         label: namespace,
         type: "database",
@@ -51,51 +104,49 @@ export default class GraphDataProcessor {
     );
 
     this.edges = this.edges.concat(
-      this.system.databasesUsages.map(
-        ({ serviceId, databaseId, accessType }) => {
-          const id = `db${databaseId}/s${serviceId}`;
-          const source = `s${serviceId}`;
-          const target = `db${databaseId}`;
-          const label = `${
-            accessType === DatabaseAccessType.readAndWrite
-              ? "R/W"
-              : accessType === DatabaseAccessType.read
-              ? "R"
-              : "W"
-          }`;
-          const type = "db";
+      this.databasesUsages.map(({ componentId, databaseId, accessType }) => {
+        const id = `db${databaseId}/${componentId}`;
+        const source = componentId;
+        const target = `db${databaseId}`;
+        const label = `${
+          accessType === DatabaseAccessType.readAndWrite
+            ? "R/W"
+            : accessType === DatabaseAccessType.read
+            ? "R"
+            : "W"
+        }`;
+        const type = "db";
 
-          return {
-            id,
-            source,
-            target,
-            label,
-            type,
-          };
-        }
-      )
+        return {
+          id,
+          source,
+          target,
+          label,
+          type,
+        };
+      })
     );
   }
 
   #syncCouplingDimension() {
     if (this.nodes.every((n) => n.type !== "operation")) {
-      this.system.services.forEach((s) => {
-        s.operations.forEach((op) => {
+      this.components.forEach((comp) => {
+        comp.operations.forEach((op) => {
           if (
-            this.system.syncOperations.find(
-              ({ to, label }) => to === s.id && label === op
+            this.syncOperations.find(
+              ({ to, label }) => to === comp.id && label === op
             )
           ) {
             this.nodes.push({
-              id: `op_${op}_from_s${s.id}`,
+              id: `op_${op}_from_${comp.id}`,
               label: op,
               type: "operation",
             });
 
             this.edges.push({
-              id: `op${op}/s${s.id}`,
-              source: `s${s.id}`,
-              target: `op_${op}_from_s${s.id}`,
+              id: `op${op}/${comp.id}`,
+              source: comp.id,
+              target: `op_${op}_from_${comp.id}`,
               type: "operation",
             });
           }
@@ -104,10 +155,10 @@ export default class GraphDataProcessor {
     }
 
     this.edges = this.edges.concat(
-      this.system.syncOperations.map(({ from, to, label }) => ({
-        id: `sync-op_${label}_from_s${to}/s${from}`,
-        source: `op_${label}_from_s${to}`,
-        target: `s${from}`,
+      this.syncOperations.map(({ from, to, label }) => ({
+        id: `sync-op_${label}_from_${to}/${from}`,
+        source: `op_${label}_from_${to}`,
+        target: `${from}`,
         type: "sync",
         label,
       }))
@@ -116,18 +167,34 @@ export default class GraphDataProcessor {
 
   #asyncCouplingDimension() {
     this.edges = this.edges.concat(
-      this.system.asyncOperations.map(({ from, to, label }) => ({
-        id: `async-s${from}/s${to}`,
-        source: `s${from}`,
-        target: `s${to}`,
+      this.asyncOperations.map(({ from, to, label }) => ({
+        id: `async-${from}/${to}`,
+        source: from,
+        target: to,
         type: "async",
         label,
       }))
     );
   }
 
-  static build(system, dimensions) {
-    const processor = new GraphDataProcessor(system);
+  #addNeighborsToNodes() {
+    this.edges.forEach((link) => {
+      const a = this.nodes.find((n) => n.id === link.source);
+      const b = this.nodes.find((n) => n.id === link.target);
+      !a.neighbors && (a.neighbors = []);
+      !b.neighbors && (b.neighbors = []);
+      a.neighbors.push(b);
+      b.neighbors.push(a);
+
+      !a.links && (a.links = []);
+      !b.links && (b.links = []);
+      a.links.push(link);
+      b.links.push(link);
+    });
+  }
+
+  static #build(system, dimensions, componentType = "service") {
+    const processor = new GraphDataProcessor(system, componentType);
     const buildOptions = {
       [Dimension.SIZE]() {
         processor.#sizeDimension();
@@ -146,20 +213,7 @@ export default class GraphDataProcessor {
     dimensions.forEach((dimension) => buildOptions[dimension]());
 
     curveOverlappingLinks(processor.edges);
-
-    processor.edges.forEach((link) => {
-      const a = processor.nodes.find((n) => n.id === link.source);
-      const b = processor.nodes.find((n) => n.id === link.target);
-      !a.neighbors && (a.neighbors = []);
-      !b.neighbors && (b.neighbors = []);
-      a.neighbors.push(b);
-      b.neighbors.push(a);
-
-      !a.links && (a.links = []);
-      !b.links && (b.links = []);
-      a.links.push(link);
-      b.links.push(link);
-    });
+    processor.#addNeighborsToNodes();
 
     return {
       nodes: processor.nodes,
@@ -170,150 +224,11 @@ export default class GraphDataProcessor {
     };
   }
 
+  static buildForServices(system, dimensions) {
+    return GraphDataProcessor.#build(system, dimensions);
+  }
+
   static buildForModules(system, dimensions) {
-    const setOfDimensions = new Set(dimensions);
-    const serviceToModuleMap = {};
-
-    system.services.find((s) => {
-      serviceToModuleMap[s.id] = system.modules.find(
-        (mod) => mod.id === s.moduleId
-      );
-    });
-
-    let nodes = [];
-    let edges = [];
-
-    nodes = system.modules.map(({ id, name }) => ({
-      id: `m${id}`,
-      label: name,
-      type: "module",
-    }));
-
-    if (setOfDimensions.has(Dimension.SIZE)) {
-      system.services.forEach((s) => {
-        s.operations.forEach((op) => {
-          nodes.push({
-            id: `op_${op}_from_m${serviceToModuleMap[s.id].id}`,
-            label: op,
-            type: "operation",
-          });
-
-          edges.push({
-            id: `op${op}/m${serviceToModuleMap[s.id].id}`,
-            source: `m${serviceToModuleMap[s.id].id}`,
-            target: `op_${op}_from_m${serviceToModuleMap[s.id].id}`,
-            type: "operation",
-          });
-        });
-      });
-    }
-
-    if (setOfDimensions.has(Dimension.DATA_COUPLING)) {
-      nodes = nodes.concat(
-        system.databasesUsages.map(({ databaseId, namespace }) => ({
-          id: `db${databaseId}`,
-          label: namespace,
-          type: "database",
-        }))
-      );
-
-      edges = edges.concat(
-        system.databasesUsages.map(({ serviceId, databaseId, accessType }) => {
-          const moduleId = serviceToModuleMap[serviceId].id;
-          const id = `db${databaseId}/m${moduleId}`;
-          const source = `m${moduleId}`;
-          const target = `db${databaseId}`;
-          const label = `${
-            accessType === DatabaseAccessType.readAndWrite
-              ? "R/W"
-              : accessType === DatabaseAccessType.read
-              ? "R"
-              : "W"
-          }`;
-          const type = "db";
-
-          return {
-            id,
-            source,
-            target,
-            label,
-            type,
-          };
-        })
-      );
-    }
-
-    if (setOfDimensions.has(Dimension.SYNC_COUPLING)) {
-      if (nodes.every((n) => n.type !== "operation")) {
-        system.services.forEach((s) => {
-          s.operations.forEach((op) => {
-            if (
-              system.syncOperations.find(
-                ({ to, label }) => to === s.id && label === op
-              )
-            ) {
-              nodes.push({
-                id: `op_${op}_from_m${serviceToModuleMap[s.id].id}`,
-                label: op,
-                type: "operation",
-              });
-
-              edges.push({
-                id: `op${op}/m${serviceToModuleMap[s.id].id}`,
-                source: `m${serviceToModuleMap[s.id].id}`,
-                target: `op_${op}_from_m${serviceToModuleMap[s.id].id}`,
-                type: "operation",
-              });
-            }
-          });
-        });
-      }
-
-      edges = edges.concat(
-        system.syncOperations.map(({ from, to, label }) => ({
-          id: `sync-op_${label}_from_m${serviceToModuleMap[to].id}/m${serviceToModuleMap[from].id}`,
-          source: `op_${label}_from_m${serviceToModuleMap[to].id}`,
-          target: `m${serviceToModuleMap[from].id}`,
-          type: "sync",
-          label,
-        }))
-      );
-    }
-
-    if (setOfDimensions.has(Dimension.ASYNC_COUPLING)) {
-      edges = edges.concat(
-        system.asyncOperations.map(({ from, to, label }) => ({
-          id: `async-m${serviceToModuleMap[from].id}/m${serviceToModuleMap[to].id}`,
-          source: `m${serviceToModuleMap[from].id}`,
-          target: `m${serviceToModuleMap[to].id}`,
-          type: "async",
-          label,
-        }))
-      );
-    }
-
-    curveOverlappingLinks(edges);
-
-    edges.forEach((link) => {
-      const a = nodes.find((n) => n.id === link.source);
-      const b = nodes.find((n) => n.id === link.target);
-      !a.neighbors && (a.neighbors = []);
-      !b.neighbors && (b.neighbors = []);
-      a.neighbors.push(b);
-      b.neighbors.push(a);
-
-      !a.links && (a.links = []);
-      !b.links && (b.links = []);
-      a.links.push(link);
-      b.links.push(link);
-    });
-
-    return {
-      nodes,
-      links: edges.map((edge) => ({
-        ...edge,
-        dashed: edge.type === "async",
-      })),
-    };
+    return GraphDataProcessor.#build(system, dimensions, "module");
   }
 }

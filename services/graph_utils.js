@@ -80,7 +80,7 @@ export const getAllCombinationsOfGraphData = (system) => {
     (acc, comb) => ({
       ...acc,
       [comb.join(",")]: {
-        forServices: GraphDataProcessor.build(system, comb),
+        forServices: GraphDataProcessor.buildForServices(system, comb),
         forModules: GraphDataProcessor.buildForModules(system, comb),
       },
     }),
