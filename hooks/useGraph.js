@@ -53,21 +53,14 @@ const useGraph = ({ system, dimensions, depth, seeModules, onSelection }) => {
   useEffect(() => {
     if (allCombinations === undefined) return;
 
-    if (myGraph === undefined) return;
+    if (myGraph.current === undefined) return;
 
     const combination = allCombinations[dimensions.join(",")];
     const data = seeModules ? combination.forModules : combination.forServices;
 
-    defaultGraphData.nodes.forEach((node) => {
-      node.highlighted = false;
-      node.clicked = false;
-    });
-    defaultGraphData.links.forEach((link) => (link.highlighted = false));
-
-    onSelection([]);
-
+    setClickedNode(false);
     setDefaultGraphData(data);
-  }, [allCombinations, dimensions, seeModules, defaultGraphData, onSelection]);
+  }, [allCombinations, dimensions, seeModules]);
 
   useEffect(() => {
     const width = graphRef.current.clientWidth;
@@ -133,6 +126,11 @@ const useGraph = ({ system, dimensions, depth, seeModules, onSelection }) => {
   }, [clickedNode]);
 
   useEffect(() => {
+    defaultGraphData.nodes.forEach((node) => {
+      node.highlighted = false;
+      node.clicked = false;
+    });
+    defaultGraphData.links.forEach((link) => (link.highlighted = false));
     if (clickedNode) {
       if (
         (clickedNode.type === "service" && !seeModules) ||
@@ -141,12 +139,6 @@ const useGraph = ({ system, dimensions, depth, seeModules, onSelection }) => {
         filterGraphAroundSelectedNode(myGraph.current, depth, clickedNode);
       }
     } else {
-      defaultGraphData.nodes.forEach((node) => {
-        node.highlighted = false;
-        node.clicked = false;
-      });
-      defaultGraphData.links.forEach((link) => (link.highlighted = false));
-
       myGraph.current.graphData(defaultGraphData);
     }
   }, [depth, clickedNode, seeModules, defaultGraphData]);
