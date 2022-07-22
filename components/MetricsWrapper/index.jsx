@@ -14,7 +14,7 @@ const MetricsWrapper = ({ metrics, selectedComponents }) => {
       <h4>Global:</h4>
       <DisplayMetrics metrics={globals} />
 
-      {specificsByComponent.length > 0 ? (
+      {specificsByComponent.length > 0 &&
         specificsByComponent.map(({ name, type, metrics }) => (
           <div key={`${name}+${type}`}>
             <h4>
@@ -22,10 +22,7 @@ const MetricsWrapper = ({ metrics, selectedComponents }) => {
             </h4>
             <DisplayMetrics metrics={metrics} />
           </div>
-        ))
-      ) : (
-        <p>Select a component to see its metrics.</p>
-      )}
+        ))}
     </div>
   );
 };

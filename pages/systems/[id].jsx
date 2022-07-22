@@ -94,7 +94,7 @@ const SystemPage = () => {
         />
 
         <Checkbox
-          name="Group services by deployment unit"
+          name="Group services by deployment unit (Modules)"
           checked={seeModules}
           onChange={() => setSeeModules((previous) => !previous)}
         />

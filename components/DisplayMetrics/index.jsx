@@ -1,8 +1,10 @@
+import styles from "./styles.module.css";
+
 const ComplexMetric = ({ name, value }) => {
   return (
-    <div>
-      <p>{name}:</p>
-      <ul>
+    <div className={styles.metricContainer}>
+      <p className={styles.metricName}>{name}</p>
+      <ul className={styles.metricValue}>
         {Object.entries(value).map(([key, val]) => (
           <li key={key}>{`${key}: ${val}`}</li>
         ))}
@@ -13,9 +15,10 @@ const ComplexMetric = ({ name, value }) => {
 
 const SimpleMetric = ({ name, value }) => {
   return (
-    <p>
-      {name}: {value}
-    </p>
+    <div className={styles.metricContainer}>
+      <p className={styles.metricName}>{name}</p>
+      <p className={styles.metricValue}>{value}</p>
+    </div>
   );
 };
 
