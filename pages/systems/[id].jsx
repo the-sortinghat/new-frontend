@@ -79,7 +79,7 @@ const SystemPage = () => {
   const router = useRouter();
   const { loading, system, metrics } = useSystem(router.query.id);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <div className={styles.loadingContainer}>Loading...</div>;
 
   return (
     <div className={styles.container}>

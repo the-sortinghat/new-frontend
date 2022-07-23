@@ -1,3 +1,11 @@
+.loadingContainer {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .container {
   padding: 0 2rem;
 }
