@@ -158,10 +158,30 @@ export default class GraphDataProcessor {
       this.syncOperations.map(({ from, to, label }) => ({
         id: `sync-op_${label}_from_${to}/${from}`,
         source: `op_${label}_from_${to}`,
-        target: `${from}`,
+        target: from,
         type: "sync",
         label,
       }))
+    );
+  }
+
+  #syncCouplingDimensionWithoutOperations() {
+    this.edges = this.edges.concat(
+      this.syncOperations
+        .reduce(
+          (acc, op) =>
+            acc.find(({ from, to }) => op.from === from && op.to === to)
+              ? acc
+              : [...acc, op],
+          []
+        )
+        .map(({ from, to, label }) => ({
+          id: `sync-${to}/${from}`,
+          source: to,
+          target: from,
+          type: "sync",
+          label,
+        }))
     );
   }
 
@@ -193,7 +213,7 @@ export default class GraphDataProcessor {
     });
   }
 
-  static #build(system, dimensions, componentType = "service") {
+  static #build(system, dimensions, componentType = "service", options = {}) {
     const processor = new GraphDataProcessor(system, componentType);
     const buildOptions = {
       [Dimension.SIZE]() {
@@ -203,7 +223,9 @@ export default class GraphDataProcessor {
         processor.#dataCouplingDimension();
       },
       [Dimension.SYNC_COUPLING]() {
-        processor.#syncCouplingDimension();
+        options.showOperations
+          ? processor.#syncCouplingDimension()
+          : processor.#syncCouplingDimensionWithoutOperations();
       },
       [Dimension.ASYNC_COUPLING]() {
         processor.#asyncCouplingDimension();
@@ -224,11 +246,11 @@ export default class GraphDataProcessor {
     };
   }
 
-  static buildForServices(system, dimensions) {
-    return GraphDataProcessor.#build(system, dimensions);
+  static buildForServices(system, dimensions, options = {}) {
+    return GraphDataProcessor.#build(system, dimensions, "service", options);
   }
 
-  static buildForModules(system, dimensions) {
-    return GraphDataProcessor.#build(system, dimensions, "module");
+  static buildForModules(system, dimensions, options = {}) {
+    return GraphDataProcessor.#build(system, dimensions, "module", options);
   }
 }

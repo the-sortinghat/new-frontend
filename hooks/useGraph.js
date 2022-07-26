@@ -36,7 +36,14 @@ const filterGraphAroundSelectedNode = (myGraph, depth, clickedNode) => {
   });
 };
 
-const useGraph = ({ system, dimensions, depth, seeModules, onSelection }) => {
+const useGraph = ({
+  system,
+  dimensions,
+  depth,
+  seeModules,
+  showOperations,
+  onSelection,
+}) => {
   const graphRef = useRef();
   const [allCombinations, setAllCombinations] = useState();
   const myGraph = useRef(ForceGraph());
@@ -56,11 +63,12 @@ const useGraph = ({ system, dimensions, depth, seeModules, onSelection }) => {
     if (myGraph.current === undefined) return;
 
     const combination = allCombinations[dimensions.join(",")];
-    const data = seeModules ? combination.forModules : combination.forServices;
+    let data = seeModules ? combination.forModules : combination.forServices;
+    data = showOperations ? data.withOperations : data.withoutOperations;
 
     setClickedNode(false);
     setDefaultGraphData(data);
-  }, [allCombinations, dimensions, seeModules]);
+  }, [allCombinations, dimensions, seeModules, showOperations]);
 
   useEffect(() => {
     const width = graphRef.current.clientWidth;

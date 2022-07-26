@@ -29,7 +29,13 @@ const PageHeader = ({ router, title }) => {
   );
 };
 
-const GraphAndMetrics = ({ system, dimensions, metrics, seeModules }) => {
+const GraphAndMetrics = ({
+  system,
+  dimensions,
+  metrics,
+  seeModules,
+  showOperations,
+}) => {
   const [selectedComponents, setSelectedComponents] = useState([]);
   const [depth, setDepth] = useState(1);
 
@@ -59,6 +65,7 @@ const GraphAndMetrics = ({ system, dimensions, metrics, seeModules }) => {
           depth={depth}
           onSelection={setSelectedComponents}
           seeModules={seeModules}
+          showOperations={showOperations}
         />
         <div className={styles.imageKey}>
           <ImageKey />
@@ -76,6 +83,7 @@ const GraphAndMetrics = ({ system, dimensions, metrics, seeModules }) => {
 const SystemPage = () => {
   const [dimensions, setDimensions] = useState([]);
   const [seeModules, setSeeModules] = useState(false);
+  const [showOperations, setShowOperations] = useState(false);
   const router = useRouter();
   const { loading, system, metrics } = useSystem(router.query.id);
 
@@ -94,6 +102,12 @@ const SystemPage = () => {
         />
 
         <Checkbox
+          name="Show operations in synchronous communications"
+          checked={showOperations}
+          onChange={() => setShowOperations((previous) => !previous)}
+        />
+
+        <Checkbox
           name="Group services by deployment unit (Modules)"
           checked={seeModules}
           onChange={() => setSeeModules((previous) => !previous)}
@@ -104,6 +118,7 @@ const SystemPage = () => {
           dimensions={dimensions}
           metrics={metrics}
           seeModules={seeModules}
+          showOperations={showOperations}
         />
       </main>
     </div>
