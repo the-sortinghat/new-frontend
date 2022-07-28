@@ -37,6 +37,7 @@ const GraphAndMetrics = ({
   showOperations,
 }) => {
   const [selectedComponents, setSelectedComponents] = useState([]);
+  const [focusedComponent, setFocusedComponent] = useState(null);
   const [depth, setDepth] = useState(1);
 
   return (
@@ -66,6 +67,7 @@ const GraphAndMetrics = ({
           onSelection={setSelectedComponents}
           seeModules={seeModules}
           showOperations={showOperations}
+          focusedComponent={focusedComponent}
         />
         <div className={styles.imageKey}>
           <ImageKey />
@@ -75,6 +77,7 @@ const GraphAndMetrics = ({
       <MetricsWrapper
         metrics={metrics}
         selectedComponents={selectedComponents}
+        onMetricClick={setFocusedComponent}
       />
     </div>
   );
@@ -102,7 +105,7 @@ const SystemPage = () => {
         />
 
         <Checkbox
-          name="Show operations in synchronous communications"
+          name="Link synchronous communications through operations"
           checked={showOperations}
           onChange={() => setShowOperations((previous) => !previous)}
         />

@@ -9,6 +9,7 @@ const Graph = ({
   onSelection,
   seeModules,
   showOperations,
+  focusedComponent,
 }) => {
   const graphRef = useGraph({
     system,
@@ -18,6 +19,7 @@ const Graph = ({
     onSelection,
     seeModules,
     showOperations,
+    focusedComponent,
   });
 
   return (

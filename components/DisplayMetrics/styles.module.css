@@ -12,3 +12,12 @@
 .metricValue {
   margin-left: 0.5rem;
 }
+
+.clickableMetricValue {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.metricValueContainer {
+  display: inline;
+}

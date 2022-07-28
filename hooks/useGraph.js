@@ -43,6 +43,7 @@ const useGraph = ({
   seeModules,
   showOperations,
   onSelection,
+  focusedComponent,
 }) => {
   const graphRef = useRef();
   const [allCombinations, setAllCombinations] = useState();
@@ -69,6 +70,16 @@ const useGraph = ({
     setClickedNode(false);
     setDefaultGraphData(data);
   }, [allCombinations, dimensions, seeModules, showOperations]);
+
+  useEffect(() => {
+    if (!focusedComponent) return;
+
+    const node = myGraph.current
+      .graphData()
+      .nodes.find((node) => node.label === focusedComponent.name);
+
+    myGraph.current.centerAt(node.x, node.y, 1000).zoom(5, 1000);
+  }, [focusedComponent]);
 
   useEffect(() => {
     const width = graphRef.current.clientWidth;
@@ -162,7 +173,10 @@ const useGraph = ({
   }, [clickedNode, onSelection]);
 
   useEffect(() => {
-    myGraph.current.graphData(defaultGraphData);
+    myGraph.current
+      .graphData(defaultGraphData)
+      .centerAt(0, 0, 1000)
+      .zoom(3, 1000);
   }, [defaultGraphData]);
 
   return graphRef;
