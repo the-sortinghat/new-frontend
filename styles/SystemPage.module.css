@@ -1,3 +1,11 @@
+.loadingContainer {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .container {
   padding: 0 2rem;
 }
@@ -46,7 +54,6 @@
 
 .imageKey {
   width: 100%;
-  height: 100px;
 }
 
 @media screen and (max-width: 1000px) {

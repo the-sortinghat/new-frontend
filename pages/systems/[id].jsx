@@ -6,6 +6,7 @@ import Header from "../../components/Header";
 import MetricsWrapper from "../../components/MetricsWrapper";
 import useSystem from "../../hooks/useSystem";
 import styles from "../../styles/SystemPage.module.css";
+import Checkbox from "../../components/Checkbox";
 
 const Graph = dynamic(() => import("../../components/Graph"), { ssr: false });
 const ImageKey = dynamic(() => import("../../components/ImageKey"), {
@@ -28,16 +29,45 @@ const PageHeader = ({ router, title }) => {
   );
 };
 
-const GraphAndMetrics = ({ system, dimensions, metrics }) => {
+const GraphAndMetrics = ({
+  system,
+  dimensions,
+  metrics,
+  seeModules,
+  showOperations,
+}) => {
   const [selectedComponents, setSelectedComponents] = useState([]);
+  const [focusedComponent, setFocusedComponent] = useState(null);
+  const [depth, setDepth] = useState(1);
 
   return (
     <div className={styles.grid}>
       <div className={styles.view}>
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          Click on a service and type a depth level you want to see.
+          <div>
+            Depth:
+            <input
+              type="number"
+              value={depth}
+              placeholder="Depth"
+              onChange={(e) => {
+                const level = parseInt(e.target.value);
+
+                if (level >= 0) setDepth(level);
+              }}
+            />
+          </div>
+        </div>
         <Graph
           system={system}
           dimensions={dimensions}
-          setSelection={setSelectedComponents}
+          selected={selectedComponents}
+          depth={depth}
+          onSelection={setSelectedComponents}
+          seeModules={seeModules}
+          showOperations={showOperations}
+          focusedComponent={focusedComponent}
         />
         <div className={styles.imageKey}>
           <ImageKey />
@@ -47,6 +77,7 @@ const GraphAndMetrics = ({ system, dimensions, metrics }) => {
       <MetricsWrapper
         metrics={metrics}
         selectedComponents={selectedComponents}
+        onMetricClick={setFocusedComponent}
       />
     </div>
   );
@@ -54,10 +85,12 @@ const GraphAndMetrics = ({ system, dimensions, metrics }) => {
 
 const SystemPage = () => {
   const [dimensions, setDimensions] = useState([]);
+  const [seeModules, setSeeModules] = useState(false);
+  const [showOperations, setShowOperations] = useState(false);
   const router = useRouter();
   const { loading, system, metrics } = useSystem(router.query.id);
 
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <div className={styles.loadingContainer}>Loading...</div>;
 
   return (
     <div className={styles.container}>
@@ -71,10 +104,24 @@ const SystemPage = () => {
           updateDimensions={setDimensions}
         />
 
+        <Checkbox
+          name="Link synchronous communications through operations"
+          checked={showOperations}
+          onChange={() => setShowOperations((previous) => !previous)}
+        />
+
+        <Checkbox
+          name="Group services by deployment unit (Modules)"
+          checked={seeModules}
+          onChange={() => setSeeModules((previous) => !previous)}
+        />
+
         <GraphAndMetrics
           system={system}
           dimensions={dimensions}
           metrics={metrics}
+          seeModules={seeModules}
+          showOperations={showOperations}
         />
       </main>
     </div>
