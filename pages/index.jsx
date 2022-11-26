@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import Button from "../components/Button";
 import Header from "../components/Header";
 import SystemsList from "../components/SystemsList";
 import useSystems from "../hooks/useSystems";
@@ -13,9 +14,11 @@ const Home = () => {
       <Header title="Sorting Hat" />
 
       <main className={styles.main}>
-        <Link href="/systems/register">
-          <button className={styles.register}>Register new system</button>
-        </Link>
+        <div className={styles.registerLinkContainer}>
+          <Link href="/systems/register">
+            <Button text={"Register new system"} />
+          </Link>
+        </div>
 
         <div className={styles.imageContainer}>
           <Image

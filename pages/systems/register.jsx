@@ -6,6 +6,7 @@ import styles from "../../styles/RegisterSystem.module.css";
 
 const RegisterSystemPage = () => {
   const {
+    loading,
     registerSystem,
     registerEndpoints,
     handleRegisterEndpointsFormChange,
@@ -47,6 +48,7 @@ const RegisterSystemPage = () => {
 
         {isSystemRegistration ? (
           <RegisterSystem
+            loading={loading}
             formData={{
               repoUrl,
               setRepoUrl,
@@ -57,6 +59,7 @@ const RegisterSystemPage = () => {
           />
         ) : (
           <RegisterEndpoints
+            loading={loading}
             formData={openApiFilenames}
             handleFormChange={handleRegisterEndpointsFormChange}
             onFormSubmit={onRegisterEndpoints}

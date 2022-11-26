@@ -1,6 +1,7 @@
+import Button from "../Button";
 import styles from "./styles.module.css";
 
-const RegisterSystem = ({ formData, onFormSubmit }) => {
+const RegisterSystem = ({ loading, formData, onFormSubmit }) => {
   const {
     repoUrl,
     setRepoUrl,
@@ -32,7 +33,7 @@ const RegisterSystem = ({ formData, onFormSubmit }) => {
         />
       </fieldset>
 
-      <button type="submit">Register</button>
+      <Button type="submit" text={"Register"} loading={loading} />
     </form>
   );
 };

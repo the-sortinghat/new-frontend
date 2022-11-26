@@ -6,6 +6,7 @@ import {
 } from "../services/system_service";
 
 const useRegisterSystem = () => {
+  const [loading, setLoading] = useState(false);
   const [isSystemRegistration, setIsSystemRegistration] = useState(true);
   const [repoUrl, setRepoUrl] = useState("");
   const [dockerComposeFilename, setDockerComposeFilename] = useState("");
@@ -24,8 +25,11 @@ const useRegisterSystem = () => {
   };
 
   const registerSystem = async ({ onSuccess, onFailure }) => {
+    setLoading(true);
+
     try {
       const response = await registerNewSystem(repoUrl, dockerComposeFilename);
+      setLoading(false);
 
       if (response.status === 201) {
         onSuccess();
@@ -40,11 +44,14 @@ const useRegisterSystem = () => {
         onFailure(response.data.error);
       }
     } catch (e) {
+      setLoading(false);
       onFailure(e.response.data.error);
     }
   };
 
   const registerEndpoints = async ({ onSuccess, onFailure }) => {
+    setLoading(true);
+
     try {
       const servicesAndOpenApiFilenames = [];
 
@@ -62,17 +69,20 @@ const useRegisterSystem = () => {
       );
 
       if (response.status === 200) {
+        setLoading(false);
         onSuccess();
         router.push(`/systems/${systemName}`);
       } else {
         onFailure(response.data.error);
       }
     } catch (e) {
+      setLoading(false);
       onFailure(e.response.data.error);
     }
   };
 
   return {
+    loading,
     registerSystem,
     registerEndpoints,
     handleRegisterEndpointsFormChange,
