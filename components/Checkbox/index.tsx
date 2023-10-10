@@ -1,6 +1,11 @@
+import React, { InputHTMLAttributes } from "react";
 import styles from "./styles.module.css";
 
-const Checkbox = ({ name, ...rest }) => {
+interface CheckboxProps extends InputHTMLAttributes<HTMLInputElement> {
+    name: string;
+}
+
+const Checkbox = ({ name, ...rest } : CheckboxProps) => {
   return (
     <label className={styles.dimensionCheckbox}>
       {name}
