@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { getAllSystems } from "../services/system_service";
+import { getAllSystems } from "@services/system_service";
 
 const useSystems = () => {
   const [allSystems, setAllSystems] = useState([]);
   const [filteredSystems, setFilteredSystems] = useState(allSystems);
   const [loading, setLoading] = useState(true);
 
-  const searchSystem = (query) => {
+  const searchSystem = (query: string) => {
     const searchResult = allSystems.filter(
-      ({ name, description }) =>
+      ({ name, description }: { name: string; description: string }) =>
         name.toLocaleLowerCase().includes(query.toLocaleLowerCase()) ||
         description.toLocaleLowerCase().includes(query.toLocaleLowerCase())
     );

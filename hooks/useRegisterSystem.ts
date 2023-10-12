@@ -3,7 +3,7 @@ import { useState } from "react";
 import {
   registerNewSystem,
   registerSystemEndpoints,
-} from "../services/system_service";
+} from "@services/system_service";
 
 const useRegisterSystem = () => {
   const [loading, setLoading] = useState(false);
@@ -11,20 +11,20 @@ const useRegisterSystem = () => {
   const [repoUrl, setRepoUrl] = useState("");
   const [dockerComposeFilename, setDockerComposeFilename] = useState("");
   const [systemName, setSystemName] = useState("");
-  const [openApiFilenames, setOpenApiFilenames] = useState({});
+  const [openApiFilenames, setOpenApiFilenames] = useState<any>({});
   const router = useRouter();
 
   const goToEndpointsRegistration = () => {
     setIsSystemRegistration(false);
   };
 
-  const handleRegisterEndpointsFormChange = (event) => {
-    const data = { ...openApiFilenames };
+  const handleRegisterEndpointsFormChange = (event: any) => {
+    const data: any = { ...openApiFilenames };
     data[event.target.name] = event.target.value;
     setOpenApiFilenames(data);
   };
 
-  const registerSystem = async ({ onSuccess, onFailure }) => {
+  const registerSystem = async ({ onSuccess, onFailure }: any) => {
     setLoading(true);
 
     try {
@@ -36,20 +36,20 @@ const useRegisterSystem = () => {
         setSystemName(response.data.name);
         setOpenApiFilenames(
           response.data.services.reduce(
-            (acc, service) => ({ ...acc, [service.name]: "" }),
+            (acc: any, service: any) => ({ ...acc, [service.name]: "" }),
             {}
           )
         );
       } else {
         onFailure(response.data.error);
       }
-    } catch (e) {
+    } catch (e: any) {
       setLoading(false);
       onFailure(e.response.data.error);
     }
   };
 
-  const registerEndpoints = async ({ onSuccess, onFailure }) => {
+  const registerEndpoints = async ({ onSuccess, onFailure }: any) => {
     setLoading(true);
 
     try {
@@ -75,7 +75,7 @@ const useRegisterSystem = () => {
       } else {
         onFailure(response.data.error);
       }
-    } catch (e) {
+    } catch (e: any) {
       setLoading(false);
       onFailure(e.response.data.error);
     }

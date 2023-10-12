@@ -2,10 +2,10 @@ import React, { InputHTMLAttributes } from "react";
 import styles from "./styles.module.css";
 
 interface CheckboxProps extends InputHTMLAttributes<HTMLInputElement> {
-    name: string;
+  name: string;
 }
 
-const Checkbox = ({ name, ...rest } : CheckboxProps) => {
+const Checkbox = ({ name, ...rest }: CheckboxProps) => {
   return (
     <label className={styles.dimensionCheckbox}>
       {name}

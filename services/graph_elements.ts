@@ -1,4 +1,4 @@
-export const drawService = (node, ctx) => {
+export const drawService = (node: any, ctx: any) => {
   ctx.beginPath();
   ctx.arc(node.x, node.y, 3 * 1.4, 0, 2 * Math.PI, false);
   ctx.fillStyle = node.clicked
@@ -16,7 +16,7 @@ export const drawService = (node, ctx) => {
   ctx.fillText(node.label, node.x, node.y + 9);
 };
 
-export const drawDatabase = (node, ctx) => {
+export const drawDatabase = (node: any, ctx: any) => {
   const img = new Image();
   img.src = "/assets/database.svg";
   const size = 8;
@@ -28,7 +28,7 @@ export const drawDatabase = (node, ctx) => {
   ctx.fillText(node.label, node.x, node.y + 10);
 };
 
-export const drawOperation = (node, ctx) => {
+export const drawOperation = (node: any, ctx: any) => {
   ctx.beginPath();
   const width = 5;
   const height = 5;
@@ -50,7 +50,11 @@ export const drawOperation = (node, ctx) => {
   ctx.fillText(node.label, node.x, node.y + 6);
 };
 
-export const drawLinkLabelForDatabaseUsages = (nodeRelSize, link, ctx) => {
+export const drawLinkLabelForDatabaseUsages = (
+  nodeRelSize: number,
+  link: any,
+  ctx: any
+) => {
   const MAX_FONT_SIZE = 4;
   const LABEL_NODE_MARGIN = nodeRelSize * 1.5;
 
@@ -62,7 +66,7 @@ export const drawLinkLabelForDatabaseUsages = (nodeRelSize, link, ctx) => {
 
   // calculate label positioning
   const textPos = Object.assign(
-    ...["x", "y"].map((c) => ({
+    ["x", "y"].map((c) => ({
       [c]: start[c] + (end[c] - start[c]) / 2, // calc middle point
     }))
   );

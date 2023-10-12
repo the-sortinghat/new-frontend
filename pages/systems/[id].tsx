@@ -1,19 +1,19 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import dynamic from "next/dynamic";
-import DimensionSelector from "../../components/DimensionSelector";
-import Header from "../../components/Header";
-import MetricsWrapper from "../../components/MetricsWrapper";
-import useSystem from "../../hooks/useSystem";
-import styles from "../../styles/SystemPage.module.css";
-import Checkbox from "../../components/Checkbox";
+import DimensionSelector from "@components/DimensionSelector";
+import Header from "@components/Header";
+import MetricsWrapper from "@components/MetricsWrapper";
+import useSystem from "@hooks/useSystem";
+import styles from "@styles/SystemPage.module.css";
+import Checkbox from "@components/Checkbox";
 
-const Graph = dynamic(() => import("../../components/Graph"), { ssr: false });
-const ImageKey = dynamic(() => import("../../components/ImageKey"), {
+const Graph = dynamic(() => import("@components/Graph"), { ssr: false });
+const ImageKey = dynamic(() => import("@components/ImageKey"), {
   ssr: false,
 });
 
-const PageHeader = ({ router, title }) => {
+const PageHeader = ({ router, title }: any) => {
   return (
     <div className={styles.pageHeader}>
       <button
@@ -35,7 +35,7 @@ const GraphAndMetrics = ({
   metrics,
   seeModules,
   showOperations,
-}) => {
+}: any) => {
   const [selectedComponents, setSelectedComponents] = useState([]);
   const [focusedComponent, setFocusedComponent] = useState(null);
   const [depth, setDepth] = useState(1);
@@ -88,7 +88,7 @@ const SystemPage = () => {
   const [seeModules, setSeeModules] = useState(false);
   const [showOperations, setShowOperations] = useState(false);
   const router = useRouter();
-  const { loading, system, metrics } = useSystem(router.query.id);
+  const { loading, system, metrics }: any = useSystem(router.query.id);
 
   if (loading) return <div className={styles.loadingContainer}>Loading...</div>;
 

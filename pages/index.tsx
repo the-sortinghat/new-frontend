@@ -1,10 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
-import Button from "../components/Button";
-import Header from "../components/Header";
-import SystemsList from "../components/SystemsList";
-import useSystems from "../hooks/useSystems";
-import styles from "../styles/Home.module.css";
+import Button from "@components/Button";
+import Header from "@components/Header";
+import SystemsList from "@components/SystemsList";
+import useSystems from "@hooks/useSystems";
+import styles from "@styles/Home.module.css";
 
 const Home = () => {
   const { loading, systems, onSearch } = useSystems();
