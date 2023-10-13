@@ -1,6 +1,7 @@
+import { Fragment } from "react";
 import useMetrics from "@hooks/useMetrics";
 import DisplayMetrics from "@components/DisplayMetrics";
-import styles from "./styles.module.css";
+import { Metrics, MetricsType, Title } from "./styled";
 
 const MetricsWrapper = ({
   metrics,
@@ -13,21 +14,21 @@ const MetricsWrapper = ({
   );
 
   return (
-    <div className={styles.metrics}>
-      <h2>Metrics</h2>
-      <h4>Global:</h4>
+    <Metrics>
+      <Title>Metrics</Title>
+      <MetricsType>Global:</MetricsType>
       <DisplayMetrics metrics={globals} onMetricClick={onMetricClick} />
 
       {specificsByComponent.length > 0 &&
         specificsByComponent.map(({ name, type, metrics }: any) => (
-          <div key={`${name}+${type}`}>
-            <h4>
+          <Fragment key={`${name}+${type}`}>
+            <MetricsType>
               Metrics of the {type} {name}:
-            </h4>
+            </MetricsType>
             <DisplayMetrics metrics={metrics} />
-          </div>
+          </Fragment>
         ))}
-    </div>
+    </Metrics>
   );
 };
 

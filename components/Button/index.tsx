@@ -1,21 +1,22 @@
-import styles from "./styles.module.css";
 import React, { ButtonHTMLAttributes } from "react";
+import { LoadingSpinner, LoadingSpinnerWrapper, StyledButton } from "./styled";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
   text?: string;
 }
-const Button = ({ loading = false, text, ...rest }: ButtonProps) => {
-  const loadingSpinner = (
-    <div className={styles.spinnerContainer}>
-      <div className={styles.loadingSpinner}></div>
-    </div>
-  );
 
+const Button = ({ loading = false, text, ...rest }: ButtonProps) => {
   return (
-    <button className={styles.button} disabled={loading} {...rest}>
-      {loading ? loadingSpinner : text}
-    </button>
+    <StyledButton disabled={loading} {...rest}>
+      {loading ? (
+        <LoadingSpinnerWrapper>
+          <LoadingSpinner />
+        </LoadingSpinnerWrapper>
+      ) : (
+        text
+      )}
+    </StyledButton>
   );
 };
 

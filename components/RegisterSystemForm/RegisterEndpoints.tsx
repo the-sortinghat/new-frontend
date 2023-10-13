@@ -1,5 +1,10 @@
 import Button from "@components/Button";
-import styles from "./styles.module.css";
+import {
+  RegisterForm,
+  RegisterFormFieldset,
+  RegisterFormInput,
+  RegisterFormLabel,
+} from "./styled";
 
 const RegisterEndpoints = ({
   loading,
@@ -8,24 +13,23 @@ const RegisterEndpoints = ({
   onFormSubmit,
 }: any) => {
   return (
-    <form className={styles.registerForm} onSubmit={onFormSubmit}>
+    <RegisterForm onSubmit={onFormSubmit}>
       {Object.entries(formData).map(([serviceName, openApiFilename]) => (
-        <fieldset key={serviceName}>
-          <label htmlFor={serviceName}>
+        <RegisterFormFieldset key={serviceName}>
+          <RegisterFormLabel htmlFor={serviceName}>
             OpenAPI filename for service {serviceName}:
-          </label>
-          <input
-            className={styles.registerInput}
+          </RegisterFormLabel>
+          <RegisterFormInput
             type="text"
             name={serviceName}
             value={openApiFilename as string}
             onChange={handleFormChange}
           />
-        </fieldset>
+        </RegisterFormFieldset>
       ))}
 
       <Button type="submit" text={"Register"} loading={loading} />
-    </form>
+    </RegisterForm>
   );
 };
 

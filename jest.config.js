@@ -18,6 +18,7 @@ const customJestConfig = {
     "^@styles(.*)$": "<rootDir>/styles/$1",
     "^@model(.*)$": "<rootDir>/model/$1",
     "^@common(.*)$": "<rootDir>/common/$1",
+    "^@views(.*)$": "<rootDir>/views/$1",
   },
 };
 

@@ -1,7 +1,7 @@
 import React from "react";
 import Checkbox from "@components/Checkbox";
 import { Dimension } from "@common/dimension";
-import styles from "./styles.module.css";
+import { SelectorWrapper } from "./styled";
 
 const DimensionSelector = ({ dimensions, updateDimensions }: any) => {
   const allDimensions = [
@@ -28,8 +28,8 @@ const DimensionSelector = ({ dimensions, updateDimensions }: any) => {
   };
 
   return (
-    <div className={styles.dimensions}>
-      <p>Dimensions: </p>
+    <SelectorWrapper>
+      Dimensions:
       {allDimensions.map(({ name, dimension }) => (
         <Checkbox
           key={name}
@@ -38,7 +38,7 @@ const DimensionSelector = ({ dimensions, updateDimensions }: any) => {
           onChange={() => handleChange(dimension)}
         />
       ))}
-    </div>
+    </SelectorWrapper>
   );
 };
 

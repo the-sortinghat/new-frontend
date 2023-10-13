@@ -1,5 +1,5 @@
 import React, { InputHTMLAttributes } from "react";
-import styles from "./styles.module.css";
+import { CheckboxInput, CheckboxLabel, Checkmark } from "./styled";
 
 interface CheckboxProps extends InputHTMLAttributes<HTMLInputElement> {
   name: string;
@@ -7,11 +7,11 @@ interface CheckboxProps extends InputHTMLAttributes<HTMLInputElement> {
 
 const Checkbox = ({ name, ...rest }: CheckboxProps) => {
   return (
-    <label className={styles.dimensionCheckbox}>
+    <CheckboxLabel>
       {name}
-      <input type="checkbox" {...rest} />
-      <span className={styles.checkmark}></span>
-    </label>
+      <CheckboxInput type="checkbox" {...rest} />
+      <Checkmark />
+    </CheckboxLabel>
   );
 };
 

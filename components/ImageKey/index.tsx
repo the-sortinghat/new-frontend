@@ -1,5 +1,10 @@
 import Image from "next/image";
-import styles from "./styles.module.css";
+import {
+  ImageKeyContainer,
+  ImageKeyTitle,
+  ImageKeyWrapper,
+  ImageLabel,
+} from "./styled";
 
 const ImageKey = () => {
   const data = [
@@ -29,15 +34,15 @@ const ImageKey = () => {
   ];
   return (
     <>
-      <h2>Image key</h2>
-      <div className={styles.imageKeyContainer}>
+      <ImageKeyTitle>Image key</ImageKeyTitle>
+      <ImageKeyContainer>
         {data.map(({ img, label }) => (
-          <div key={label} className={styles.imageKey}>
+          <ImageKeyWrapper key={label}>
             <Image src={img} alt={label} width={30} height={30} />
-            <p className={styles.imageLabel}>{label}</p>
-          </div>
+            <ImageLabel>{label}</ImageLabel>
+          </ImageKeyWrapper>
         ))}
-      </div>
+      </ImageKeyContainer>
     </>
   );
 };

@@ -1,5 +1,5 @@
 import useGraph from "@hooks/useGraph";
-import styles from "./styles.module.css";
+import { GraphContainer, GraphWrapper } from "./styled";
 
 const Graph = ({
   system,
@@ -23,9 +23,9 @@ const Graph = ({
   });
 
   return (
-    <div className={styles.graphContainer}>
-      <div ref={graphRef} className={styles.graph}></div>
-    </div>
+    <GraphContainer>
+      <GraphWrapper ref={graphRef}></GraphWrapper>
+    </GraphContainer>
   );
 };
 

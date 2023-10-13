@@ -47,7 +47,10 @@
       ],
       "@common/*": [
         "./common/*"
-      ]
+      ],
+      "@views/*": [
+        "./views/*"
+      ],
     },
     "forceConsistentCasingInFileNames": true
   },

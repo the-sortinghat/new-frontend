@@ -1,45 +1,51 @@
-import styles from "./styles.module.css";
+import {
+  Clickable,
+  ClickableWrapper,
+  ListItem,
+  MetricContainer,
+  MetricName,
+  MetricValue,
+  MetricValueList,
+  MetricValueWrapper,
+} from "./styled";
 
 const KeyValueMetric = ({ name, value }: any) => {
   return (
-    <div className={styles.metricContainer}>
-      <p className={styles.metricName}>{name}</p>
-      <ul className={styles.metricValue}>
+    <MetricContainer>
+      <MetricName>{name}</MetricName>
+      <MetricValueList>
         {Object.entries(value).map(([key, val]) => (
-          <li key={key}>{`${key}: ${val}`}</li>
+          <ListItem key={key}>{`${key}: ${val}`}</ListItem>
         ))}
-      </ul>
-    </div>
+      </MetricValueList>
+    </MetricContainer>
   );
 };
 
 const ListMetric = ({ name, value, onMetricClick }: any) => {
   return (
-    <div className={styles.metricContainer}>
-      <p className={styles.metricName}>{name}</p>
-      <div className={styles.metricValue}>
+    <MetricContainer>
+      <MetricName>{name}</MetricName>
+      <MetricValueWrapper>
         {value.map((val: any, index: number) => (
-          <div key={val} className={styles.metricValueContainer}>
-            <a
-              className={styles.clickableMetricValue}
-              onClick={() => onMetricClick({ name: val })}
-            >
+          <ClickableWrapper key={val}>
+            <Clickable onClick={() => onMetricClick({ name: val })}>
               {val}
-            </a>
+            </Clickable>
             {index < value.length - 1 && ", "}
-          </div>
+          </ClickableWrapper>
         ))}
-      </div>
-    </div>
+      </MetricValueWrapper>
+    </MetricContainer>
   );
 };
 
 const SimpleMetric = ({ name, value }: any) => {
   return (
-    <div className={styles.metricContainer}>
-      <p className={styles.metricName}>{name}</p>
-      <p className={styles.metricValue}>{value}</p>
-    </div>
+    <MetricContainer>
+      <MetricName>{name}</MetricName>
+      <MetricValue>{value}</MetricValue>
+    </MetricContainer>
   );
 };
 
