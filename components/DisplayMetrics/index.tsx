@@ -1,6 +1,6 @@
 import styles from "./styles.module.css";
 
-const KeyValueMetric = ({ name, value }) => {
+const KeyValueMetric = ({ name, value }: any) => {
   return (
     <div className={styles.metricContainer}>
       <p className={styles.metricName}>{name}</p>
@@ -13,12 +13,12 @@ const KeyValueMetric = ({ name, value }) => {
   );
 };
 
-const ListMetric = ({ name, value, onMetricClick }) => {
+const ListMetric = ({ name, value, onMetricClick }: any) => {
   return (
     <div className={styles.metricContainer}>
       <p className={styles.metricName}>{name}</p>
       <div className={styles.metricValue}>
-        {value.map((val, index) => (
+        {value.map((val: any, index: number) => (
           <div key={val} className={styles.metricValueContainer}>
             <a
               className={styles.clickableMetricValue}
@@ -34,7 +34,7 @@ const ListMetric = ({ name, value, onMetricClick }) => {
   );
 };
 
-const SimpleMetric = ({ name, value }) => {
+const SimpleMetric = ({ name, value }: any) => {
   return (
     <div className={styles.metricContainer}>
       <p className={styles.metricName}>{name}</p>
@@ -43,8 +43,8 @@ const SimpleMetric = ({ name, value }) => {
   );
 };
 
-const DisplayMetrics = ({ metrics, onMetricClick }) => {
-  const renderComponentByMetricType = ([metric, value]) => {
+const DisplayMetrics = ({ metrics, onMetricClick }: any) => {
+  const renderComponentByMetricType = ([metric, value]: any) => {
     if (Array.isArray(value)) {
       return (
         <ListMetric

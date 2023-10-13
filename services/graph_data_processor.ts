@@ -1,8 +1,15 @@
-import { DatabaseAccessType, Dimension } from "../common";
+import { DatabaseAccessType, Dimension } from "@common/index";
 import { curveOverlappingLinks } from "./graph_utils";
 
 export default class GraphDataProcessor {
-  constructor(system, componentType = "service") {
+  public nodes: any[];
+  public edges: any[];
+  public components: any[];
+  public databasesUsages: any[];
+  public syncOperations: any[];
+  public asyncOperations: any[];
+
+  constructor(system: any, componentType = "service") {
     this.nodes = [];
     this.edges = [];
     this.components = [];
@@ -11,53 +18,56 @@ export default class GraphDataProcessor {
     this.asyncOperations = [];
 
     if (componentType === "module") {
-      this.components = system.modules.map((m) => ({
+      this.components = system.modules.map((m: any) => ({
         ...m,
         id: `m${m.id}`,
         type: "module",
         operations: system.services
-          .filter((s) => s.moduleId === m.id)
-          .reduce((acc, { operations }) => [...acc, ...operations], []),
+          .filter((s: any) => s.moduleId === m.id)
+          .reduce(
+            (acc: any, { operations }: any) => [...acc, ...operations],
+            []
+          ),
       }));
-      this.databasesUsages = system.databasesUsages.map((usage) => ({
+      this.databasesUsages = system.databasesUsages.map((usage: any) => ({
         ...usage,
         componentId: `m${
-          system.services.find((s) => s.id === usage.serviceId).moduleId
+          system.services.find((s: any) => s.id === usage.serviceId).moduleId
         }`,
       }));
       this.syncOperations = system.syncOperations.map(
-        ({ from, to, label }) => ({
-          from: `m${system.services.find((s) => s.id === from).moduleId}`,
-          to: `m${system.services.find((s) => s.id === to).moduleId}`,
+        ({ from, to, label }: any) => ({
+          from: `m${system.services.find((s: any) => s.id === from).moduleId}`,
+          to: `m${system.services.find((s: any) => s.id === to).moduleId}`,
           label,
         })
       );
       this.asyncOperations = system.asyncOperations.map(
-        ({ from, to, label }) => ({
-          from: `m${system.services.find((s) => s.id === from).moduleId}`,
-          to: `m${system.services.find((s) => s.id === to).moduleId}`,
+        ({ from, to, label }: any) => ({
+          from: `m${system.services.find((s: any) => s.id === from).moduleId}`,
+          to: `m${system.services.find((s: any) => s.id === to).moduleId}`,
           label,
         })
       );
     } else {
-      this.components = system.services.map((s) => ({
+      this.components = system.services.map((s: any) => ({
         ...s,
         id: `s${s.id}`,
         type: "service",
       }));
-      this.databasesUsages = system.databasesUsages.map((usage) => ({
+      this.databasesUsages = system.databasesUsages.map((usage: any) => ({
         ...usage,
         componentId: `s${usage.serviceId}`,
       }));
       this.syncOperations = system.syncOperations.map(
-        ({ from, to, label }) => ({
+        ({ from, to, label }: any) => ({
           from: `s${from}`,
           to: `s${to}`,
           label,
         })
       );
       this.asyncOperations = system.asyncOperations.map(
-        ({ from, to, label }) => ({
+        ({ from, to, label }: any) => ({
           from: `s${from}`,
           to: `s${to}`,
           label,
@@ -77,7 +87,7 @@ export default class GraphDataProcessor {
 
   #sizeDimension() {
     this.components.forEach((comp) => {
-      comp.operations.forEach((op) => {
+      comp.operations.forEach((op: any) => {
         this.nodes.push({
           id: `op_${op}_from_${comp.id}`,
           label: op,
@@ -131,7 +141,7 @@ export default class GraphDataProcessor {
   #syncCouplingDimension() {
     if (this.nodes.every((n) => n.type !== "operation")) {
       this.components.forEach((comp) => {
-        comp.operations.forEach((op) => {
+        comp.operations.forEach((op: any) => {
           if (
             this.syncOperations.find(
               ({ to, label }) => to === comp.id && label === op
@@ -155,7 +165,7 @@ export default class GraphDataProcessor {
     }
 
     this.edges = this.edges.concat(
-      this.syncOperations.map(({ from, to, label }) => ({
+      this.syncOperations.map(({ from, to, label }: any) => ({
         id: `sync-op_${label}_from_${to}/${from}`,
         source: `op_${label}_from_${to}`,
         target: from,
@@ -170,12 +180,12 @@ export default class GraphDataProcessor {
       this.syncOperations
         .reduce(
           (acc, op) =>
-            acc.find(({ from, to }) => op.from === from && op.to === to)
+            acc.find(({ from, to }: any) => op.from === from && op.to === to)
               ? acc
               : [...acc, op],
           []
         )
-        .map(({ from, to, label }) => ({
+        .map(({ from, to, label }: any) => ({
           id: `sync-${to}/${from}`,
           source: to,
           target: from,
@@ -187,7 +197,7 @@ export default class GraphDataProcessor {
 
   #asyncCouplingDimension() {
     this.edges = this.edges.concat(
-      this.asyncOperations.map(({ from, to, label }) => ({
+      this.asyncOperations.map(({ from, to, label }: any) => ({
         id: `async-${from}/${to}`,
         source: from,
         target: to,
@@ -213,7 +223,12 @@ export default class GraphDataProcessor {
     });
   }
 
-  static #build(system, dimensions, componentType = "service", options = {}) {
+  static #build(
+    system: any,
+    dimensions: any,
+    componentType = "service",
+    options: any = {}
+  ) {
     const processor = new GraphDataProcessor(system, componentType);
     const buildOptions = {
       [Dimension.SIZE]() {
@@ -232,7 +247,7 @@ export default class GraphDataProcessor {
       },
     };
 
-    dimensions.forEach((dimension) => buildOptions[dimension]());
+    dimensions.forEach((dimension: any) => buildOptions[dimension]());
 
     curveOverlappingLinks(processor.edges);
     processor.#addNeighborsToNodes();
@@ -246,11 +261,11 @@ export default class GraphDataProcessor {
     };
   }
 
-  static buildForServices(system, dimensions, options = {}) {
+  static buildForServices(system: any, dimensions: any, options = {}) {
     return GraphDataProcessor.#build(system, dimensions, "service", options);
   }
 
-  static buildForModules(system, dimensions, options = {}) {
+  static buildForModules(system: any, dimensions: any, options = {}) {
     return GraphDataProcessor.#build(system, dimensions, "module", options);
   }
 }

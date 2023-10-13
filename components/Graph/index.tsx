@@ -1,4 +1,4 @@
-import useGraph from "../../hooks/useGraph";
+import useGraph from "@hooks/useGraph";
 import styles from "./styles.module.css";
 
 const Graph = ({
@@ -10,7 +10,7 @@ const Graph = ({
   seeModules,
   showOperations,
   focusedComponent,
-}) => {
+}: any) => {
   const graphRef = useGraph({
     system,
     dimensions,

@@ -1,8 +1,8 @@
-import Header from "../../components/Header";
-import RegisterSystem from "../../components/RegisterSystemForm/RegisterSystem";
-import RegisterEndpoints from "../../components/RegisterSystemForm/RegisterEndpoints";
-import useRegisterSystem from "../../hooks/useRegisterSystem";
-import styles from "../../styles/RegisterSystem.module.css";
+import Header from "@components/Header";
+import RegisterSystem from "@components/RegisterSystemForm/RegisterSystem";
+import RegisterEndpoints from "@components/RegisterSystemForm/RegisterEndpoints";
+import useRegisterSystem from "@hooks/useRegisterSystem";
+import styles from "@styles/RegisterSystem.module.css";
 
 const RegisterSystemPage = () => {
   const {
@@ -19,19 +19,19 @@ const RegisterSystemPage = () => {
     isSystemRegistration,
   } = useRegisterSystem();
 
-  const onRegisterSystem = (e) => {
+  const onRegisterSystem = (e: any) => {
     e.preventDefault();
     registerSystem({
       onSuccess: () => goToEndpointsRegistration(),
-      onFailure: (error) => alert(error),
+      onFailure: (error: any) => alert(error),
     });
   };
 
-  const onRegisterEndpoints = (e) => {
+  const onRegisterEndpoints = (e: any) => {
     e.preventDefault();
     registerEndpoints({
       onSuccess: () => alert("New system has been successfully registered"),
-      onFailure: (error) => alert(error),
+      onFailure: (error: any) => alert(error),
     });
   };
 

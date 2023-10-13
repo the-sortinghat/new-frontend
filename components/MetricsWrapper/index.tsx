@@ -1,8 +1,12 @@
-import useMetrics from "../../hooks/useMetrics";
-import DisplayMetrics from "../DisplayMetrics";
+import useMetrics from "@hooks/useMetrics";
+import DisplayMetrics from "@components/DisplayMetrics";
 import styles from "./styles.module.css";
 
-const MetricsWrapper = ({ metrics, selectedComponents, onMetricClick }) => {
+const MetricsWrapper = ({
+  metrics,
+  selectedComponents,
+  onMetricClick,
+}: any) => {
   const { globals, specificsByComponent } = useMetrics(
     metrics,
     selectedComponents
@@ -15,7 +19,7 @@ const MetricsWrapper = ({ metrics, selectedComponents, onMetricClick }) => {
       <DisplayMetrics metrics={globals} onMetricClick={onMetricClick} />
 
       {specificsByComponent.length > 0 &&
-        specificsByComponent.map(({ name, type, metrics }) => (
+        specificsByComponent.map(({ name, type, metrics }: any) => (
           <div key={`${name}+${type}`}>
             <h4>
               Metrics of the {type} {name}:

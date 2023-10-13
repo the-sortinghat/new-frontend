@@ -3,7 +3,7 @@ import Head from "next/head";
 const Header = ({
   title,
   description = "A tool to characterize the architecture of service-based systems",
-}) => {
+}: any) => {
   return (
     <Head>
       <title>{title}</title>

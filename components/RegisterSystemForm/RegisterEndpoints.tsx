@@ -1,4 +1,4 @@
-import Button from "../Button";
+import Button from "@components/Button";
 import styles from "./styles.module.css";
 
 const RegisterEndpoints = ({
@@ -6,7 +6,7 @@ const RegisterEndpoints = ({
   formData,
   handleFormChange,
   onFormSubmit,
-}) => {
+}: any) => {
   return (
     <form className={styles.registerForm} onSubmit={onFormSubmit}>
       {Object.entries(formData).map(([serviceName, openApiFilename]) => (
@@ -18,7 +18,7 @@ const RegisterEndpoints = ({
             className={styles.registerInput}
             type="text"
             name={serviceName}
-            value={openApiFilename}
+            value={openApiFilename as string}
             onChange={handleFormChange}
           />
         </fieldset>

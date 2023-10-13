@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { getSystemById, getSystemMetrics } from "../services/system_service";
+import { getSystemById, getSystemMetrics } from "@services/system_service";
 
-const useSystem = (id) => {
+const useSystem = (id: any) => {
   const [loading, setLoading] = useState(true);
   const [system, setSystem] = useState({});
   const [metrics, setMetrics] = useState({});

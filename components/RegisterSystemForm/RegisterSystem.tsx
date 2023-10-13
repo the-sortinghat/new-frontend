@@ -1,7 +1,7 @@
-import Button from "../Button";
+import Button from "@components/Button";
 import styles from "./styles.module.css";
 
-const RegisterSystem = ({ loading, formData, onFormSubmit }) => {
+const RegisterSystem = ({ loading, formData, onFormSubmit }: any) => {
   const {
     repoUrl,
     setRepoUrl,

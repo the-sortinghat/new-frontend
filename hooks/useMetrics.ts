@@ -1,4 +1,4 @@
-const changeMetricName = (metricName) => {
+const changeMetricName = (metricName: string) => {
   let newName = metricName;
   const target = ["a given component", "each component"].find((op) =>
     metricName.includes(op)
@@ -11,7 +11,7 @@ const changeMetricName = (metricName) => {
   return newName;
 };
 
-const splitMetricsIntoGlobalsAndSpecifics = (metrics) => {
+const splitMetricsIntoGlobalsAndSpecifics = (metrics: any) => {
   const metricsByDimension = [
     metrics["Size"],
     metrics["Data source coupling"],
@@ -19,11 +19,11 @@ const splitMetricsIntoGlobalsAndSpecifics = (metrics) => {
     metrics["Asynchronous coupling"],
   ];
 
-  const globals = {};
-  const specifics = {};
+  const globals: any = {};
+  const specifics: any = {};
 
   metricsByDimension.forEach((metricsSet) => {
-    Object.entries(metricsSet).forEach(([name, value]) => {
+    Object.entries(metricsSet).forEach(([name, value]: any) => {
       const newName = changeMetricName(name);
       const isSpecific =
         typeof value === "object" &&
@@ -40,7 +40,7 @@ const splitMetricsIntoGlobalsAndSpecifics = (metrics) => {
   return { globals, specifics };
 };
 
-const getComponentMetrics = (specifics, { name, type }) => {
+const getComponentMetrics = (specifics: any, { name, type }: any) => {
   const pluralType = type + "s";
 
   return Object.keys(specifics).reduce((acc, metric) => {
@@ -59,10 +59,10 @@ const getComponentMetrics = (specifics, { name, type }) => {
   }, {});
 };
 
-const useMetrics = (metrics, selectedComponents) => {
+const useMetrics = (metrics: any, selectedComponents: any) => {
   const { globals, specifics } = splitMetricsIntoGlobalsAndSpecifics(metrics);
   const specificMetricsBySelectedComponents = selectedComponents.map(
-    ({ name, type }) => ({
+    ({ name, type }: any) => ({
       name,
       type,
       metrics: getComponentMetrics(specifics, { name, type }),

@@ -1,9 +1,9 @@
-import GraphDataProcessor from "./graph_data_processor";
-import { Dimension } from "../common";
+import GraphDataProcessor from "@services/graph_data_processor";
+import { Dimension } from "@common/dimension";
 
-export const curveOverlappingLinks = (links) => {
-  const selfLoopLinks = {};
-  const sameNodesLinks = {};
+export const curveOverlappingLinks = (links: any[]) => {
+  const selfLoopLinks: any = {};
+  const sameNodesLinks: any = {};
   const curvatureMinMax = 0.5;
 
   // 1. assign each link a nodePairId that combines their source and target independent of the links direction
@@ -13,7 +13,8 @@ export const curveOverlappingLinks = (links) => {
       link.source <= link.target
         ? link.source + "_" + link.target
         : link.target + "_" + link.source;
-    const map = link.source === link.target ? selfLoopLinks : sameNodesLinks;
+    const map: any =
+      link.source === link.target ? selfLoopLinks : sameNodesLinks;
     if (!map[link.nodePairId]) {
       map[link.nodePairId] = [];
     }
@@ -49,7 +50,7 @@ export const curveOverlappingLinks = (links) => {
     });
 };
 
-export const getAllCombinationsOfGraphData = (system) => {
+export const getAllCombinationsOfGraphData = (system: any) => {
   return [
     [],
     [Dimension.SIZE],
@@ -102,10 +103,10 @@ export const getAllCombinationsOfGraphData = (system) => {
   );
 };
 
-export const calculateNeighborsByDepth = (node, depth) => {
+export const calculateNeighborsByDepth = (node: any, depth: number) => {
   const allNeighbors = new Set();
   const allLinks = new Set();
-  const queue = [];
+  const queue: any[] = [];
   const visited = new Set();
 
   queue.push([node, 0]);
@@ -119,7 +120,7 @@ export const calculateNeighborsByDepth = (node, depth) => {
     for (let i = 0; i < currNode.neighbors.length; i++) {
       const neighbor = currNode.neighbors[i];
       allLinks.add(
-        currNode.links.find((link) => {
+        currNode.links.find((link: any) => {
           const targetId =
             typeof link.target === "object" ? link.target.id : link.target;
           const sourceId =

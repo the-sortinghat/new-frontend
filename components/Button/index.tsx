@@ -1,6 +1,11 @@
 import styles from "./styles.module.css";
+import React, { ButtonHTMLAttributes } from "react";
 
-const Button = ({ loading = false, text, ...rest }) => {
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  loading?: boolean;
+  text?: string;
+}
+const Button = ({ loading = false, text, ...rest }: ButtonProps) => {
   const loadingSpinner = (
     <div className={styles.spinnerContainer}>
       <div className={styles.loadingSpinner}></div>
